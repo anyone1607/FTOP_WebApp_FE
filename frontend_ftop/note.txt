@@ -1,0 +1,20 @@
+FTOP Admin 
+
+User Management
+Order Management
+Store Owner, Staff Management
+Statistic Management
+Transaction Management
+Store Voucher Management
+Wallet Admin (Ví của admin sau mỗi lần order thành công % hoa hồng)
+
+Store Owner
+
+View Product của họ
+Create Product của họ (admin duyệt)
+Update Product của họ (admin duyệt)
+Delete Product của họ (admin duyệt)
+View Transaction của họ (sv chuyển)
+View Order của họ (sv order)
+Wallet Store Owner (sv chuyển)
+
