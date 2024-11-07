@@ -12,6 +12,7 @@ import StoreManagement from "../components/StoreManagement/StoreManagement";
 import Statistics from "../components/StatisticComponent/Statistics";
 import FeedBack from "../components/FeedBackComponent/FeedBack";
 import Transaction from "../components/Transaction/Transaction";
+import MyProfile from "../components/MyProfileComponent/MyProfile";
 
 export const routes = [
     {
@@ -69,5 +70,9 @@ export const routes = [
     {
         path: '*',
         page: NotFoundPage,
+    },
+    {
+        path :'my-profile',
+        page: MyProfile
     },
 ];

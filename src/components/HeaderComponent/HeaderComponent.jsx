@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaBell, FaQuestionCircle } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
 import { IoIosMail } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 const HeaderComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    setIsOpen(!isOpen); 
   };
 
   useEffect(() => {
@@ -22,6 +24,12 @@ const HeaderComponent = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+    // Hàm để chuyển hướng đến trang "My Profile"
+    const handleProfileClick = () => {
+      navigate("/my-profile"); // Chuyển hướng đến trang My Profile
+      setIsOpen(false); // Đóng dropdown sau khi nhấn
+    };
 
   return (
     <header className="bg-gray-900 text-white p-3 flex items-center justify-between rounded-sm sticky top-0 z-20">
@@ -59,7 +67,8 @@ const HeaderComponent = () => {
           </div>
           {isOpen && (
             <ul className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg z-50">
-              <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
+              <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer"
+              onClick={handleProfileClick}>
                 My Profile
               </li>
               <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
