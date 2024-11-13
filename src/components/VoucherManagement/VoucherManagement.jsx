@@ -1,272 +1,216 @@
-import React, { useState } from "react";
-import {
-  Table,
-  Space,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  DatePicker,
-  Upload,
-  message,
-  Popconfirm,
-  Switch,
-} from "antd";
-import {
-  UploadOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  RollbackOutlined,
-  DeleteFilled,
-} from "@ant-design/icons";
-
-const { Column } = Table;
-
-const initialData = [
-  {
-    key: "1",
-    voucherId: 101,
-    voucherName: "Holiday Discount",
-    voucherDiscount: 15.0,
-    storeId: 501,
-    expiredDate: "2024-12-31",
-    createdDate: "2024-10-01",
-    isDeleted: false,
-  },
-  {
-    key: "2",
-    voucherId: 102,
-    voucherName: "Winter Sale",
-    voucherDiscount: 20.0,
-    storeId: 502,
-    expiredDate: "2024-11-30",
-    createdDate: "2024-09-15",
-    isDeleted: false,
-  },
-  {
-    key: "3",
-    voucherId: 103,
-    voucherName: "Summer Offer",
-    voucherDiscount: 10.0,
-    storeId: 503,
-    expiredDate: "2025-01-15",
-    createdDate: "2024-08-20",
-    isDeleted: false,
-  },
-];
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { FaEye, FaTrash, FaUndoAlt } from "react-icons/fa";
 
 const VoucherManagement = () => {
-  const [data, setData] = useState(initialData);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [showDeleted, setShowDeleted] = useState(false); // Toggle for Recycle Bin
+  const [vouchers, setVouchers] = useState([]);
+  const [selectedVoucherId, setSelectedVoucherId] = useState(null);
+  const [voucherDetails, setVoucherDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [deletedVouchers, setDeletedVouchers] = useState([]);
 
-  const handleAddEditVoucher = (values) => {
-    const newData = [
-      ...data,
-      { key: data.length + 1, isDeleted: false, ...values },
-    ];
-    setData(newData);
-    setIsModalVisible(false);
-    form.resetFields();
-    message.success("Voucher added successfully!");
-  };
-
-  const handleSoftDelete = (voucherId) => {
-    const updatedData = data.map((item) =>
-      item.voucherId === voucherId ? { ...item, isDeleted: true } : item
-    );
-    setData(updatedData);
-    message.success("Voucher moved to Recycle Bin!");
-  };
-
-  const handleRestore = (voucherId) => {
-    const updatedData = data.map((item) =>
-      item.voucherId === voucherId ? { ...item, isDeleted: false } : item
-    );
-    setData(updatedData);
-    message.success("Voucher restored successfully!");
-  };
-
-  const handlePermanentDelete = (voucherId) => {
-    const updatedData = data.filter((item) => item.voucherId !== voucherId);
-    setData(updatedData);
-    message.success("Voucher permanently deleted!");
-  };
-
-  const handleUpload = (info) => {
-    if (info.file.status === "done") {
-      message.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === "error") {
-      message.error(`${info.file.name} file upload failed.`);
+  const fetchVouchersData = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/voucher");
+      setVouchers(response.data?.vouchers || response.data || []);
+    } catch (error) {
+      console.error("Error fetching vouchers:", error);
     }
   };
 
-  // Filter based on Recycle Bin toggle
-  const filteredData = showDeleted
-    ? data.filter((item) => item.isDeleted)
-    : data.filter((item) => !item.isDeleted);
+  const fetchDeletedVouchers = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/voucher/trash");
+      setDeletedVouchers(response.data || []);
+    } catch (error) {
+      console.error("Error fetching deleted vouchers:", error);
+    }
+  };
+
+  const fetchVoucherDetails = async (voucherId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8000/api/voucher/${voucherId}`);
+      setVoucherDetails(response.data || {});
+    } catch (error) {
+      console.error("Error fetching voucher details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // xoá mềm call api lại đến voucher data vs deletedvoucher (done)
+  const softDeleteVoucher = async (voucherId) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/voucher/${voucherId}`);
+      fetchVouchersData();
+      fetchDeletedVouchers();
+    } catch (error) {
+      console.error("Error deleting voucher:", error);
+    }
+  }
+
+
+  const restoreVoucher = async (voucherId) => {
+    try {
+      await axios.get(`http://localhost:8000/api/voucher/restore/${voucherId}`);
+      fetchDeletedVouchers();
+      fetchVouchersData();
+    } catch (error) {
+      console.error("Error restoring voucher:", error);
+    }
+  };
+
+  const permanentlyDeleteVoucher = async (voucherId) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/voucher/permanently/${voucherId}`);
+      fetchDeletedVouchers();
+    } catch (error) {
+      console.error("Error permanently deleting voucher:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVouchersData();
+    fetchDeletedVouchers();
+  }, []);
+
+  const toggleVoucherDetails = (voucherId) => {
+    if (selectedVoucherId === voucherId) {
+      setSelectedVoucherId(null);
+      setVoucherDetails(null);
+    } else {
+      setSelectedVoucherId(voucherId);
+      fetchVoucherDetails(voucherId);
+    }
+  };
 
   return (
-    <>
-      <div className="flex justify-between mb-4">
-        <div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalVisible(true)}
-            className="mr-2"
-          >
-            Add Voucher
-          </Button>
-          <Upload
-            name="file"
-            action="/upload"
-            onChange={handleUpload}
-            accept=".xls,.xlsx"
-          >
-            <Button icon={<UploadOutlined />}>Import Excel</Button>
-          </Upload>
-        </div>
-
-        {/* Toggle for showing Recycle Bin */}
-        <Switch
-          checkedChildren={<DeleteOutlined />} 
-          unCheckedChildren={<DeleteOutlined />}
-          checked={showDeleted}
-          onChange={setShowDeleted}
-        />
+    <div className="container mx-auto p-6">
+      <div className="flex items-center mb-4">
+        <h1 className="text-2xl font-bold">Voucher Management</h1>
       </div>
+      <div className="overflow-x-auto">
+        <h2 className="text-lg font-semibold mb-2">Active Vouchers</h2>
+        <table className="min-w-full table-auto bg-white shadow-md rounded-lg mb-6">
+          <thead>
+            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
+              <th className="py-3 px-6 text-left">Voucher ID</th>
+              <th className="py-3 px-6 text-left">Voucher Name</th>
+              <th className="py-3 px-6 text-left">Discount (%)</th>
+              <th className="py-3 px-6 text-left">Store</th>
+              <th className="py-3 px-6 text-left">Expired Date</th>
+              <th className="py-3 px-6 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-600 text-sm font-light">
+            {vouchers.length > 0 ? (
+              vouchers.map((voucher) => (
+                <React.Fragment key={voucher.voucherId}>
+                  <tr className="border-b border-gray-200 hover:bg-gray-100">
+                    <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
+                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
+                    <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
+                    <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                    <td className="py-3 px-6 text-left">
+                      {new Date(voucher.expiredDate).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-6 flex space-x-2">
+                      <button
+                        onClick={() => toggleVoucherDetails(voucher.voucherId)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded flex items-center hover:text-blue-700 transition duration-300"
+                      >
+                        <FaEye className="mr-1" /> View
+                      </button>
+                      <button
+                        onClick={() => softDeleteVoucher(voucher.voucherId)}
+                        className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:bg-red-600"
+                      >
+                        <FaTrash className="mr-1" /> Delete
+                      </button>
+                    </td>
+                  </tr>
+                  {selectedVoucherId === voucher.voucherId && (
+                    <tr>
+                      <td colSpan="6">
+                        <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
+                          {loading ? (
+                            <div>Loading...</div>
+                          ) : (
+                            <div>
+                              <h3 className="font-semibold text-lg">Voucher Details</h3>
+                              <p><strong>Voucher ID:</strong> {voucherDetails.voucherId}</p>
+                              <p><strong>Voucher Name:</strong> {voucherDetails.voucherName}</p>
+                              <p><strong>Discount Percentage:</strong> {voucherDetails.voucherDiscount}%</p>
+                              <p><strong>Store:</strong> {voucherDetails.store?.storeName}</p>
+                              <p><strong>Expired Date:</strong> {new Date(voucherDetails.expiredDate).toLocaleDateString()}</p>
+                              <p><strong>Orders Applied:</strong> {voucherDetails.order?.length}</p>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="text-center py-3 px-6">
+                  No vouchers found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
-      <Table dataSource={filteredData} rowKey="voucherId">
-        <Column title="Voucher ID" dataIndex="voucherId" key="voucherId" />
-        <Column
-          title="Voucher Name"
-          dataIndex="voucherName"
-          key="voucherName"
-        />
-        <Column
-          title="Discount (%)"
-          dataIndex="voucherDiscount"
-          key="voucherDiscount"
-        />
-        <Column title="Store ID" dataIndex="storeId" key="storeId" />
-        <Column title="Expiry Date" dataIndex="expiredDate" key="expiredDate" />
-        <Column
-          title="Created Date"
-          dataIndex="createdDate"
-          key="createdDate"
-        />
-        <Column
-          title="Action"
-          key="action"
-          render={(_, record) => (
-            <Space size="middle">
-              {!record.isDeleted ? (
-                <>
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    Edit
-                  </Button>
-                  <Popconfirm
-                    title="Are you sure you want to move this voucher to Recycle Bin?"
-                    onConfirm={() => handleSoftDelete(record.voucherId)}
-                    okText="Yes"
-                    cancelText="No"
-                  >
-                    <Button
-                      type="link"
-                      icon={<DeleteOutlined />}
-                      className="text-red-500 hover:text-red-700"
+        <h2 className="text-lg font-semibold mb-2">Deleted Vouchers</h2>
+        <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
+          <thead>
+            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
+              <th className="py-3 px-6 text-left">Voucher ID</th>
+              <th className="py-3 px-6 text-left">Voucher Name</th>
+              <th className="py-3 px-6 text-left">Discount (%)</th>
+              <th className="py-3 px-6 text-left">Store</th>
+              <th className="py-3 px-6 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-600 text-sm font-light">
+            {deletedVouchers.length > 0 ? (
+              deletedVouchers.map((voucher) => (
+                <tr key={voucher.voucherId} className="border-b border-gray-200 hover:bg-gray-100">
+                  <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
+                  <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
+                  <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
+                  <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                  <td className="py-3 px-6 flex space-x-2">
+                    <button
+                      onClick={() => restoreVoucher(voucher.voucherId)}
+                      className="bg-green-500 text-white px-2 py-1 rounded flex items-center hover:bg-green-600"
                     >
-                      Delete
-                    </Button>
-                  </Popconfirm>
-                </>
-              ) : (
-                <>
-                  <Button
-                    type="link"
-                    icon={<RollbackOutlined />}
-                    className="text-green-500 hover:text-green-700"
-                    onClick={() => handleRestore(record.voucherId)}
-                  >
-                    Restore
-                  </Button>
-                  <Popconfirm
-                    title="Are you sure you want to permanently delete this voucher?"
-                    onConfirm={() => handlePermanentDelete(record.voucherId)}
-                    okText="Yes"
-                    cancelText="No"
-                  >
-                    <Button
-                      type="link"
-                      icon={<DeleteFilled />}
-                      className="text-red-500 hover:text-red-700"
+                      <FaUndoAlt className="mr-1" /> Restore
+                    </button>
+                    <button
+                      onClick={() => permanentlyDeleteVoucher(voucher.voucherId)}
+                      className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:bg-red-600"
                     >
-                      Delete Permanently
-                    </Button>
-                  </Popconfirm>
-                </>
-              )}
-            </Space>
-          )}
-        />
-      </Table>
-
-      {/* Modal for Adding/Editing Vouchers */}
-      <Modal
-        title="Add/Edit Voucher"
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
-        <Form form={form} onFinish={handleAddEditVoucher} layout="vertical">
-          <Form.Item
-            name="voucherName"
-            label="Voucher Name"
-            rules={[{ required: true, message: "Please enter voucher name" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="voucherDiscount"
-            label="Discount (%)"
-            rules={[{ required: true, message: "Please enter discount value" }]}
-          >
-            <InputNumber min={0} max={100} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="storeId"
-            label="Store ID"
-            rules={[{ required: true, message: "Please enter store ID" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="expiredDate"
-            label="Expiry Date"
-            rules={[{ required: true, message: "Please select expiry date" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-          <div className="flex justify-end mt-4">
-            <Button onClick={() => setIsModalVisible(false)} className="mr-2">
-              Cancel
-            </Button>
-            <Button type="primary" htmlType="submit">
-              Save
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-    </>
+                      <FaTrash className="mr-1" /> Delete Permanently
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center py-3 px-6">
+                  No deleted vouchers found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
 export default VoucherManagement;
+
