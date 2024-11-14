@@ -258,9 +258,9 @@
 
 // export default ProductComponent;
 
-import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaEdit, FaEye, FaPlus, FaTrash } from "react-icons/fa";
 
 const ProductComponent = () => {
   const [products, setProducts] = useState([]);
@@ -307,7 +307,7 @@ const ProductComponent = () => {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.name === "productPrice" ? parseFloat(e.target.value) || 0 : e.target.value,
     });
   };
 
