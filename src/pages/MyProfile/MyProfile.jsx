@@ -9,7 +9,7 @@ const MyProfile = () => {
   const fetchUserProfile = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/user/findUser/20"
+        "http://localhost:8000/api/user/findUser/22"
       );
       setUser(response.data);
     } catch (error) {
@@ -129,3 +129,5 @@ const MyProfile = () => {
 };
 
 export default MyProfile;
+
+

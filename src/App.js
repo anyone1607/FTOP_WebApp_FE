@@ -36,16 +36,26 @@
 // export default App;
 
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { routes } from "./router/index";
 import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
-
+import AboutUs from "./pages/AboutUs/AboutUs";
+import Work from "./pages/Work/Work";
+import Info from "./pages/Info/Info";
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/auth/system/e-wallet" />} />
+        <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/work" element={<Work />} />
+        <Route path="/info" element={<Info />} />
 
         <Route path="/auth/system" element={<AdminPage />}>
           {routes
@@ -86,5 +96,3 @@ const App = () => {
 };
 
 export default App;
-
-

@@ -1,6 +1,6 @@
 import NotFoundPage from "../pages/NotFoundPage/NotFoundPage";
-import LoginPage from "../pages/LoginPage/LoginPage";
-import RegisterPage from "../pages/RegisterPage/RegisterPage";
+// import LoginPage from "../pages/LoginPage/LoginPage";
+// import RegisterPage from "../pages/RegisterPage/RegisterPage";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import ProductComponent from "../components/ProductComponent/ProductComponent";
 import WalletCardComponent from "../components/WalletCardComponent/WalletCardComponent";
@@ -13,17 +13,22 @@ import Statistics from "../components/StatisticComponent/Statistics";
 import FeedBack from "../components/FeedBackComponent/FeedBack";
 import Transaction from "../components/Transaction/Transaction";
 import MyProfile from "../pages/MyProfile/MyProfile";
+import Home from "../pages/HomePage/Home";
 export const routes = [
+    // {
+    //     path: '/auth/system/login',
+    //     page: LoginPage,
+    // },
+    // {
+    //     path: '/auth/system/register',
+    //     page: RegisterPage,
+    // },
     {
-        path: '/auth/system/login',
-        page: LoginPage,
+        path: 'home',
+        page: Home,
     },
     {
-        path: '/auth/system/register',
-        page: RegisterPage,
-    },
-    {
-        path: '/',
+        path: 'dashboard',
         page: AdminPage,
     },
     {

@@ -12,7 +12,7 @@ const VoucherManagement = () => {
   const fetchVouchersData = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/voucher");
-      setVouchers(response.data?.vouchers || response.data || []);
+      setVouchers(response.data || []);
     } catch (error) {
       console.error("Error fetching vouchers:", error);
     }
@@ -20,7 +20,9 @@ const VoucherManagement = () => {
 
   const fetchDeletedVouchers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/voucher/trash");
+      const response = await axios.get(
+        "http://localhost:8000/api/voucher/deleted"
+      );
       setDeletedVouchers(response.data || []);
     } catch (error) {
       console.error("Error fetching deleted vouchers:", error);
@@ -30,7 +32,9 @@ const VoucherManagement = () => {
   const fetchVoucherDetails = async (voucherId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8000/api/voucher/${voucherId}`);
+      const response = await axios.get(
+        `http://localhost:8000/api/voucher/${voucherId}`
+      );
       setVoucherDetails(response.data || {});
     } catch (error) {
       console.error("Error fetching voucher details:", error);
@@ -39,21 +43,23 @@ const VoucherManagement = () => {
     }
   };
 
-  // xoá mềm call api lại đến voucher data vs deletedvoucher (done)
+  // call api xoa mem tu be
+
   const softDeleteVoucher = async (voucherId) => {
     try {
-      await axios.delete(`http://localhost:8000/api/voucher/${voucherId}`);
+      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/delete`);
       fetchVouchersData();
       fetchDeletedVouchers();
     } catch (error) {
       console.error("Error deleting voucher:", error);
     }
-  }
+  };
 
+  // call api khoi phuc tu be
 
   const restoreVoucher = async (voucherId) => {
     try {
-      await axios.get(`http://localhost:8000/api/voucher/restore/${voucherId}`);
+      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/restore`);
       fetchDeletedVouchers();
       fetchVouchersData();
     } catch (error) {
@@ -61,9 +67,10 @@ const VoucherManagement = () => {
     }
   };
 
+  // call api xoa that
   const permanentlyDeleteVoucher = async (voucherId) => {
     try {
-      await axios.delete(`http://localhost:8000/api/voucher/permanently/${voucherId}`);
+      await axios.delete(`http://localhost:8000/api/voucher/${voucherId}`);
       fetchDeletedVouchers();
     } catch (error) {
       console.error("Error permanently deleting voucher:", error);
@@ -112,9 +119,7 @@ const VoucherManagement = () => {
                     <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
                     <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
                     <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
-                    <td className="py-3 px-6 text-left">
-                      {new Date(voucher.expiredDate).toLocaleDateString()}
-                    </td>
+                    <td className="py-3 px-6 text-left">{new Date(voucher.expiredDate).toLocaleDateString()}</td>
                     <td className="py-3 px-6 flex space-x-2">
                       <button
                         onClick={() => toggleVoucherDetails(voucher.voucherId)}
@@ -193,7 +198,7 @@ const VoucherManagement = () => {
                       onClick={() => permanentlyDeleteVoucher(voucher.voucherId)}
                       className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:bg-red-600"
                     >
-                      <FaTrash className="mr-1" /> Delete Permanently
+                      <FaTrash className="mr-1" /> Permanent Delete
                     </button>
                   </td>
                 </tr>
@@ -213,4 +218,3 @@ const VoucherManagement = () => {
 };
 
 export default VoucherManagement;
-

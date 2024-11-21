@@ -1,64 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-
-// const AccountManagement = () => {
-//   const [users, setUsers] = useState([]);
-//   const fetchUsers = async () => {
-//     try {
-//       const response = await axios.get('http://localhost:8000/api/user/findUser');
-//       setUsers(response.data);
-//     } catch (error) {
-//       console.error('Error fetching users:', error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchUsers();
-//   }, []);
-
-//   return (
-//     <div className="p-6 text-center">
-//       <h1 className="text-2xl font-bold mb-4">Account Management</h1>
-//       <table className="min-w-full table-auto border-collapse border border-gray-200">
-//         <thead>
-//           <tr>
-//             <th className="border border-gray-200 px-4 py-2">ID</th>
-//             <th className="border border-gray-200 px-4 py-2">Email</th>
-//             <th className="border border-gray-200 px-4 py-2">Display Name</th>
-//             <th className="border border-gray-200 px-4 py-2">Role</th>
-//             <th className="border border-gray-200 px-4 py-2">Wallet Balance</th>
-//             <th className="border border-gray-200 px-4 py-2">Status</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {users.length > 0 ? (
-//             users.map((user) => (
-//               <tr key={user.id}>
-//                 <td className="border border-gray-200 px-4 py-2">{user.id}</td>
-//                 <td className="border border-gray-200 px-4 py-2">{user.email}</td>
-//                 <td className="border border-gray-200 px-4 py-2">{user.displayName}</td>
-//                 <td className="border border-gray-200 px-4 py-2">{user.role}</td>
-//                 <td className="border border-gray-200 px-4 py-2">$ {user.walletBalance.toFixed(2)}</td>
-//                 <td className={`border border-gray-200 px-4 py-2 ${user.isActive ? 'text-green-600' : 'text-red-600'}`}>
-//                   {user.isActive ? 'Active' : 'Inactive'}
-//                 </td>
-//               </tr>
-//             ))
-//           ) : (
-//             <tr>
-//               <td className="border border-gray-200 px-4 py-2 text-center" colSpan="6">
-//                 No users found.
-//               </td>
-//             </tr>
-//           )}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// };
-
-// export default AccountManagement;
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -67,7 +6,7 @@ const AccountManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [bankTransfers, setBankTransfers] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1);
   const fetchUsers = async () => {
     try {
       const response = await axios.get(
@@ -109,6 +48,47 @@ const AccountManagement = () => {
     fetchUsers();
   }, []);
 
+  const itemsPerPage = 10;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems =
+    users.length > 0 ? users.slice(indexOfFirstItem, indexOfLastItem) : [];
+
+  const totalPages =
+    users.length > 0 ? Math.ceil(users.length / itemsPerPage) : 0;
+
+  const getPaginationGroup = () => {
+    let startPage = 1;
+    let endPage = totalPages;
+    const range = 2;
+    if (totalPages > 5) {
+      if (currentPage <= range) {
+        startPage = 1;
+        endPage = 5;
+      } else if (currentPage + range >= totalPages) {
+        startPage = totalPages - 4;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - range;
+        endPage = currentPage + range;
+      }
+    }
+    let pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    if (startPage > 1) {
+      pages.unshift(1, "...");
+    }
+    if (endPage < totalPages) {
+      pages.push("...", totalPages);
+    }
+    return pages;
+  };
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="p-6 text-center">
       <h1 className="text-2xl font-bold mb-4">Account Management</h1>
@@ -116,6 +96,7 @@ const AccountManagement = () => {
         <thead>
           <tr>
             <th className="border border-gray-200 px-4 py-2">ID</th>
+            <th className="border border-gray-200 px-4 py-2">Avatar</th>
             <th className="border border-gray-200 px-4 py-2">Email</th>
             <th className="border border-gray-200 px-4 py-2">Display Name</th>
             <th className="border border-gray-200 px-4 py-2">Role</th>
@@ -126,9 +107,20 @@ const AccountManagement = () => {
         </thead>
         <tbody>
           {users.length > 0 ? (
-            users.map((user) => (
+            currentItems.map((user) => (
               <tr key={user.id}>
                 <td className="border border-gray-200 px-4 py-2">{user.id}</td>
+                <td className="border border-gray-200 px-4 py-2">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span>No Avatar</span>
+                  )}
+                </td>
                 <td className="border border-gray-200 px-4 py-2">
                   {user.email}
                 </td>
@@ -139,7 +131,10 @@ const AccountManagement = () => {
                   {user.role}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
-                  $ {user.walletBalance.toFixed(2)}
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(user.walletBalance)}
                 </td>
                 <td
                   className={`border border-gray-200 px-4 py-2 ${
@@ -170,6 +165,27 @@ const AccountManagement = () => {
           )}
         </tbody>
       </table>
+
+      <div className="flex justify-center mt-4">
+        <ul className="inline-flex items-center">
+          {getPaginationGroup().map((page, index) => (
+            <li key={index}>
+              {page === "..." ? (
+                <span className="px-4 py-2 text-gray-500">...</span>
+              ) : (
+                <button
+                  onClick={() => paginate(page)}
+                  className={`px-4 py-2 border text-gray-600 ${
+                    currentPage === page ? "bg-blue-500 text-white" : "bg-white"
+                  }`}
+                >
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/* Popup Modal */}
       {showPopup && selectedUser && (

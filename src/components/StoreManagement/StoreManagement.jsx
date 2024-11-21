@@ -4,7 +4,7 @@ import { FaTag } from "react-icons/fa";
 const StoreManagement = () => {
   const [stores, setStores] = useState([]);
   const [selectedStoreId, setSelectedStoreId] = useState(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
   const fetchStoresData = async () => {
     try {
       const storeResponse = await axios.get("http://localhost:8000/api/store");
@@ -22,6 +22,47 @@ const StoreManagement = () => {
   const toggleVoucherList = (storeId) => {
     setSelectedStoreId(selectedStoreId === storeId ? null : storeId);
   };
+
+  const itemsPerPage = 6;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems =
+    stores.length > 0 ? stores.slice(indexOfFirstItem, indexOfLastItem) : [];
+
+  const totalPages =
+    stores.length > 0 ? Math.ceil(stores.length / itemsPerPage) : 0;
+
+  const getPaginationGroup = () => {
+    let startPage = 1;
+    let endPage = totalPages;
+    const range = 2;
+    if (totalPages > 5) {
+      if (currentPage <= range) {
+        startPage = 1;
+        endPage = 5;
+      } else if (currentPage + range >= totalPages) {
+        startPage = totalPages - 4;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - range;
+        endPage = currentPage + range;
+      }
+    }
+    let pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    if (startPage > 1) {
+      pages.unshift(1, "...");
+    }
+    if (endPage < totalPages) {
+      pages.push("...", totalPages);
+    }
+    return pages;
+  };
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container mx-auto p-6">
@@ -43,7 +84,7 @@ const StoreManagement = () => {
           </thead>
           <tbody className="text-gray-600 text-sm font-light">
             {stores.length > 0 ? (
-              stores.map((store) => (
+              currentItems.map((store) => (
                 <React.Fragment key={store.storeId}>
                   <tr className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6 text-left">{store.storeId}</td>
@@ -126,6 +167,7 @@ const StoreManagement = () => {
                                 ))}
                               </tbody>
                             </table>
+                            
                           ) : (
                             <p className="text-center py-3 px-6">
                               No vouchers found.
@@ -146,6 +188,28 @@ const StoreManagement = () => {
             )}
           </tbody>
         </table>
+        <div className="flex justify-center mt-4">
+          <ul className="inline-flex items-center">
+            {getPaginationGroup().map((page, index) => (
+              <li key={index}>
+                {page === "..." ? (
+                  <span className="px-4 py-2 text-gray-500">...</span>
+                ) : (
+                  <button
+                    onClick={() => paginate(page)}
+                    className={`px-4 py-2 border text-gray-600 ${
+                      currentPage === page
+                        ? "bg-blue-500 text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
