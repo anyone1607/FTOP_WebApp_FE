@@ -2,15 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaBell, FaQuestionCircle } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
 import { IoIosMail } from "react-icons/io";
+import { SiBitcoincash } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
-
 const HeaderComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-
   const toggleDropdown = () => {
     setIsOpen(!isOpen); 
+  };
+
+  const handleNavigate = () => {
+    navigate("/auth/system/my-profile");
   };
 
   useEffect(() => {
@@ -67,15 +70,18 @@ const HeaderComponent = () => {
           </div>
           {isOpen && (
             <ul className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg z-50">
-              <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer"
-              onClick={handleProfileClick}>
+              <li
+                className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer"
+                onClick={handleNavigate}
+              >
                 My Profile
               </li>
               <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
                 Settings
               </li>
-              <li className="px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
-                Help
+              <li className="flex justify-start items-center px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
+                <span>Cash Out</span>
+                <SiBitcoincash className="ml-2" />
               </li>
               <li className="flex justify-start items-center px-4 py-2 hover:bg-gray-800 hover:text-white cursor-pointer">
                 <span>Logout</span>
@@ -90,4 +96,3 @@ const HeaderComponent = () => {
 };
 
 export default HeaderComponent;
-
