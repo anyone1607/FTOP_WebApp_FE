@@ -30,7 +30,7 @@ const WalletCardComponent = () => {
         axios.get("http://localhost:8000/api/order/countOrder"),
         axios.get("http://localhost:8000/api/order/countPrice"),
         axios.get("http://localhost:8000/api/transaction/countTransaction"),
-        axios.get("http://localhost:8000/api/banktransfer/23"),
+        axios.get("http://localhost:8000/api/banktransfer/28"),
       ]);
 
       setTotalUsers(userResponse.data.totalUsers);
@@ -38,9 +38,6 @@ const WalletCardComponent = () => {
       setTotalRevenue(revenueResponse.data.totalPrice);
       setRecentTransactionsCount(transactionResponse.data.totalTransactions);
       setBankTransferInfo(bankTransferResponse.data);
-      // console.log(revenueResponse);
-      // console.log(transactionResponse);
-      // console.log(bankTransferInfo);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -52,7 +49,7 @@ const WalletCardComponent = () => {
 
   const fetchTransactions = async () => {
     try {
-      const receiveUserId = 23;
+      const receiveUserId = 28;
       const response = await axios.get(
         `http://localhost:8000/api/transaction/search/${receiveUserId}`
       );
@@ -65,11 +62,6 @@ const WalletCardComponent = () => {
   useEffect(() => {
     fetchTransactions();
   }, []);
-
-  // const transactions = [
-  //   { id: 1, description: "Food Order", amount: -20.0 },
-  //   { id: 2, description: "Wallet Top-Up", amount: 100.0 },
-  // ];
 
   const filteredTransactions = transactions.filter(
     (transaction) =>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEye, FaTrash, FaUndoAlt } from "react-icons/fa";
+import { AiOutlineUpload } from "react-icons/ai";
 
 const VoucherManagement = () => {
   const [vouchers, setVouchers] = useState([]);
@@ -47,7 +48,9 @@ const VoucherManagement = () => {
 
   const softDeleteVoucher = async (voucherId) => {
     try {
-      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/delete`);
+      await axios.patch(
+        `http://localhost:8000/api/voucher/${voucherId}/delete`
+      );
       fetchVouchersData();
       fetchDeletedVouchers();
     } catch (error) {
@@ -59,7 +62,9 @@ const VoucherManagement = () => {
 
   const restoreVoucher = async (voucherId) => {
     try {
-      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/restore`);
+      await axios.patch(
+        `http://localhost:8000/api/voucher/${voucherId}/restore`
+      );
       fetchDeletedVouchers();
       fetchVouchersData();
     } catch (error) {
@@ -95,7 +100,10 @@ const VoucherManagement = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-4">
-        <h1 className="text-2xl font-bold">Voucher Management</h1>
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <AiOutlineUpload size={20} />
+          Thêm bằng Excel
+        </button>
       </div>
       <div className="overflow-x-auto">
         <h2 className="text-lg font-semibold mb-2">Active Vouchers</h2>
@@ -116,10 +124,18 @@ const VoucherManagement = () => {
                 <React.Fragment key={voucher.voucherId}>
                   <tr className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
-                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
-                    <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
-                    <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
-                    <td className="py-3 px-6 text-left">{new Date(voucher.expiredDate).toLocaleDateString()}</td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.voucherName}
+                    </td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.voucherDiscount}%
+                    </td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.store?.storeName}
+                    </td>
+                    <td className="py-3 px-6 text-left">
+                      {new Date(voucher.expiredDate).toLocaleDateString()}
+                    </td>
                     <td className="py-3 px-6 flex space-x-2">
                       <button
                         onClick={() => toggleVoucherDetails(voucher.voucherId)}
@@ -143,13 +159,35 @@ const VoucherManagement = () => {
                             <div>Loading...</div>
                           ) : (
                             <div>
-                              <h3 className="font-semibold text-lg">Voucher Details</h3>
-                              <p><strong>Voucher ID:</strong> {voucherDetails.voucherId}</p>
-                              <p><strong>Voucher Name:</strong> {voucherDetails.voucherName}</p>
-                              <p><strong>Discount Percentage:</strong> {voucherDetails.voucherDiscount}%</p>
-                              <p><strong>Store:</strong> {voucherDetails.store?.storeName}</p>
-                              <p><strong>Expired Date:</strong> {new Date(voucherDetails.expiredDate).toLocaleDateString()}</p>
-                              <p><strong>Orders Applied:</strong> {voucherDetails.order?.length}</p>
+                              <h3 className="font-semibold text-lg">
+                                Voucher Details
+                              </h3>
+                              <p>
+                                <strong>Voucher ID:</strong>{" "}
+                                {voucherDetails.voucherId}
+                              </p>
+                              <p>
+                                <strong>Voucher Name:</strong>{" "}
+                                {voucherDetails.voucherName}
+                              </p>
+                              <p>
+                                <strong>Discount Percentage:</strong>{" "}
+                                {voucherDetails.voucherDiscount}%
+                              </p>
+                              <p>
+                                <strong>Store:</strong>{" "}
+                                {voucherDetails.store?.storeName}
+                              </p>
+                              <p>
+                                <strong>Expired Date:</strong>{" "}
+                                {new Date(
+                                  voucherDetails.expiredDate
+                                ).toLocaleDateString()}
+                              </p>
+                              <p>
+                                <strong>Orders Applied:</strong>{" "}
+                                {voucherDetails.order?.length}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -182,11 +220,18 @@ const VoucherManagement = () => {
           <tbody className="text-gray-600 text-sm font-light">
             {deletedVouchers.length > 0 ? (
               deletedVouchers.map((voucher) => (
-                <tr key={voucher.voucherId} className="border-b border-gray-200 hover:bg-gray-100">
+                <tr
+                  key={voucher.voucherId}
+                  className="border-b border-gray-200 hover:bg-gray-100"
+                >
                   <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
                   <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
-                  <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
-                  <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                  <td className="py-3 px-6 text-left">
+                    {voucher.voucherDiscount}%
+                  </td>
+                  <td className="py-3 px-6 text-left">
+                    {voucher.store?.storeName}
+                  </td>
                   <td className="py-3 px-6 flex space-x-2">
                     <button
                       onClick={() => restoreVoucher(voucher.voucherId)}
@@ -195,7 +240,9 @@ const VoucherManagement = () => {
                       <FaUndoAlt className="mr-1" /> Restore
                     </button>
                     <button
-                      onClick={() => permanentlyDeleteVoucher(voucher.voucherId)}
+                      onClick={() =>
+                        permanentlyDeleteVoucher(voucher.voucherId)
+                      }
                       className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:bg-red-600"
                     >
                       <FaTrash className="mr-1" /> Permanent Delete

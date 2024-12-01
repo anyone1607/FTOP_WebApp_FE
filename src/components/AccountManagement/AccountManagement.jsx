@@ -91,14 +91,11 @@ const AccountManagement = () => {
 
   return (
     <div className="p-6 text-center">
-      <h1 className="text-2xl font-bold mb-4">Account Management</h1>
       <table className="min-w-full table-auto border-collapse border border-gray-200">
         <thead>
           <tr>
             <th className="border border-gray-200 px-4 py-2">ID</th>
-            <th className="border border-gray-200 px-4 py-2">Avatar</th>
-            <th className="border border-gray-200 px-4 py-2">Email</th>
-            <th className="border border-gray-200 px-4 py-2">Display Name</th>
+            <th className="border border-gray-200 px-4 py-2">Name</th>
             <th className="border border-gray-200 px-4 py-2">Role</th>
             <th className="border border-gray-200 px-4 py-2">Wallet Balance</th>
             <th className="border border-gray-200 px-4 py-2">Status</th>
@@ -110,23 +107,29 @@ const AccountManagement = () => {
             currentItems.map((user) => (
               <tr key={user.id}>
                 <td className="border border-gray-200 px-4 py-2">{user.id}</td>
-                <td className="border border-gray-200 px-4 py-2">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt="Avatar"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span>No Avatar</span>
-                  )}
-                </td>
-                <td className="border border-gray-200 px-4 py-2">
-                  {user.email}
-                </td>
-                <td className="border border-gray-200 px-4 py-2">
-                  {user.displayName}
-                </td>
+                <ul class="p-6 divide-y divide-slate-200">
+                  <li class="flex items-center py-4 first:pt-0 last:pb-0">
+                    <div class="flex-shrink-0">
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt="Avatar"
+                          class="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span class="text-sm text-gray-500">No Avatar</span>
+                      )}
+                    </div>
+                    <div class="ml-4 overflow-hidden">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        {user.email}
+                      </p>
+                      <p class="text-sm text-gray-500 truncate">
+                        {user.displayName}
+                      </p>
+                    </div>
+                  </li>
+                </ul>
                 <td className="border border-gray-200 px-4 py-2">
                   {user.role}
                 </td>
@@ -138,7 +141,9 @@ const AccountManagement = () => {
                 </td>
                 <td
                   className={`border border-gray-200 px-4 py-2 ${
-                    user.isActive ? "text-green-600" : "text-red-600"
+                    user.isActive
+                      ? "text-green-600 animate-blink"
+                      : "text-red-600 animate-blink"
                   }`}
                 >
                   {user.isActive ? "Active" : "Inactive"}
@@ -270,3 +275,7 @@ const AccountManagement = () => {
 };
 
 export default AccountManagement;
+
+
+
+
