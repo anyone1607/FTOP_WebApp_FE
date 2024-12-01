@@ -7,6 +7,7 @@ import {
   FaExchangeAlt,
 } from "react-icons/fa";
 import Chart from "chart.js/auto";
+import { useLocation } from 'react-router-dom';
 
 const WalletCardComponent = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,6 +16,23 @@ const WalletCardComponent = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [recentTransactionsCount, setRecentTransactionsCount] = useState(0);
   const [bankTransferInfo, setBankTransferInfo] = useState(null);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+    }
+  }, [location]);
 
   const fetchTotalData = async () => {
     try {

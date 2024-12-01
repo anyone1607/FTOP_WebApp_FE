@@ -57,7 +57,7 @@ const FoodOrdersComponent = () => {
                   {order.orderId}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
-                  {order.user.displayName}
+                  {order.user.displayName || "Unknown User"}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
                   {order.store.storeName}
@@ -73,7 +73,7 @@ const FoodOrdersComponent = () => {
                   })}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
-                  {order.voucher.voucherName}
+                  {order.voucher ? order.voucher.voucherName : "No Voucher"}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
                   {order.note}

@@ -36,7 +36,7 @@ const StoreManagement = () => {
               <th className="py-3 px-6 text-left">Store Name</th>
               <th className="py-3 px-6 text-left">Address</th>
               <th className="py-3 px-6 text-left">Phone</th>
-              <th className="py-3 px-6 text-left">Owner ID</th>
+              <th className="py-3 px-6 text-left">Owner Name</th>
               <th className="py-3 px-6 text-left">Status</th>
               <th className="py-3 px-6 text-left">Vouchers</th>
             </tr>
@@ -52,7 +52,7 @@ const StoreManagement = () => {
                       {store.storeAddress}
                     </td>
                     <td className="py-3 px-6 text-left">{store.storePhone}</td>
-                    <td className="py-3 px-6 text-left">{store.ownerId}</td>
+                    <td className="py-3 px-6 text-left">{store.owner.displayName}</td>
                     <td className="py-3 px-6 text-left">
                       {store.status ? (
                         <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">

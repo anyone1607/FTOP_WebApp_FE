@@ -69,7 +69,7 @@ const LoginPage = () => {
             <div className="flex mt-4 justify-between">
               <button
                 className="flex items-center justify-center w-full px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-200"
-                onClick={() => (window.location.href = "/api/google/login")}
+                onClick={() => (window.location.href = "http://localhost:8000/api/auth/google/login")}
               >
                 <img
                   src="https://img.icons8.com/color/48/000000/google-logo.png"

@@ -67,6 +67,8 @@ const AccountManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [bankTransfers, setBankTransfers] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -105,13 +107,45 @@ const AccountManagement = () => {
     setSelectedUser(null);
   };
 
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.displayName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = selectedRole ? user.role === selectedRole : true;
+
+    return matchesSearch && matchesRole;
+  });
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   return (
     <div className="p-6 text-center">
-      <h1 className="text-2xl font-bold mb-4">Account Management</h1>
+    <h1 className="text-2xl font-bold mb-4">Account Management</h1>
+
+    {/* Thanh tìm kiếm và bộ lọc */}
+    <div className="flex justify-between mb-4">
+      <input
+        type="text"
+        placeholder="Search by name or email"
+        className="border border-gray-300 p-2 rounded w-1/2"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+
+      <select
+        className="border border-gray-300 p-2 rounded"
+        value={selectedRole}
+        onChange={(e) => setSelectedRole(e.target.value)}
+      >
+        <option value="">All Roles</option>
+        <option value="admin">Admin</option>
+        <option value="staff">Staff</option>
+        <option value="manager">Manager</option>
+        <option value="store-owner">Store Owner</option>
+      </select>
+    </div>
       <table className="min-w-full table-auto border-collapse border border-gray-200">
         <thead>
           <tr>

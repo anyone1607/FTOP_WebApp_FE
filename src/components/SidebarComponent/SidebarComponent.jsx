@@ -32,7 +32,7 @@ const SidebarComponent = () => {
           className="rounded-full w-12 h-12"
         />
         <div className="ml-4">
-          <h3 className="text-white text-lg font-bold">LAI VAN CHUNG</h3>
+          <h3 className="text-white text-lg font-bold">{localStorage.getItem('name')}</h3>
           <span className="text-green-400 text-sm">● Online</span>
         </div>
       </div>

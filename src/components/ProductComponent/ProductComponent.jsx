@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
@@ -20,7 +19,7 @@ const ProductComponent = () => {
     productImage: "",
     storeId: "",
   });
-  const itemsPerPage = 10;
+  const itemsPerPage = 10;  
 
   useEffect(() => {
     const fetchDataProducts = async () => {
@@ -241,7 +240,7 @@ const ProductComponent = () => {
       productName: product.productName,
       productPrice: product.productPrice,
       categoryId: product.categoryId,
-      status: product.status,
+      status: product.status, 
       productImage: product.productImage,
       storeId: product.storeId,
     });
@@ -255,13 +254,10 @@ const ProductComponent = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Array.isArray(products) && products.length > 0
-    ? products.slice(indexOfFirstItem, indexOfLastItem)
-    : [];
+  const currentItems = products.length > 0 ? products.slice(indexOfFirstItem, indexOfLastItem) : [];
+  
+  const totalPages = products.length > 0 ? Math.ceil(products.length / itemsPerPage) : 0;
 
-  const totalPages = Array.isArray(products) && products.length > 0
-    ? Math.ceil(products.length / itemsPerPage)
-    : 0;
   const getPaginationGroup = () => {
     let startPage = 1;
     let endPage = totalPages;
@@ -316,10 +312,10 @@ const ProductComponent = () => {
                 <th className="py-3 px-6 text-left">Product ID</th>
                 <th className="py-3 px-6 text-left">Product Name</th>
                 <th className="py-3 px-6 text-left">Product Price</th>
-                <th className="py-3 px-6 text-left">Category ID</th>
+                <th className="py-3 px-6 text-left">Category Name</th>
                 <th className="py-3 px-6 text-left">Status</th>
                 <th className="py-3 px-6 text-left">Product Image</th>
-                <th className="py-3 px-6 text-left">Store ID</th>
+                <th className="py-3 px-6 text-left">Store Name</th>
                 <th className="py-3 px-6 text-left">Action</th>
               </tr>
             </thead>
@@ -334,7 +330,7 @@ const ProductComponent = () => {
                   <td className="py-3 px-6 text-left">
                     {product.productPrice}
                   </td>
-                  <td className="py-3 px-6 text-left">{product.categoryId}</td>
+                  <td className="py-3 px-6 text-left">{product.categoryName }</td>
                   <td className="py-3 px-6 text-left">
                     {product.status ? (
                       <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
@@ -352,8 +348,9 @@ const ProductComponent = () => {
                       alt={product.productName}
                       className="w-12 h-12 object-cover"
                     />
+
                   </td>
-                  <td className="py-3 px-6 text-left">{product.storeId}</td>
+                  <td className="py-3 px-6 text-left">{product.storeName}</td>
                   <td className="py-3 px-6 text-left">
                     <div className="flex items-center space-x-2">
                       <button
@@ -463,7 +460,7 @@ const ProductComponent = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700">Store ID</label>
+                <label className="block text-gray-700">Store Name</label>
                 <input
                   type="text"
                   name="storeId"
@@ -509,15 +506,13 @@ const ProductComponent = () => {
               <div className="flex justify-between">
                 <label className="text-gray-700 font-medium">Product Price</label>
                 <p className="text-gray-900">
-                  {typeof currentProduct.productPrice === "number"
-                    ? currentProduct.productPrice.toFixed(2)
-                    : "N/A"}
+                  {currentProduct.productPrice}
                 </p>
               </div>
 
               <div className="flex justify-between">
-                <label className="text-gray-700 font-medium">Category ID</label>
-                <p className="text-gray-900">{currentProduct.categoryId}</p>
+                <label className="text-gray-700 font-medium">Category Name</label>
+                <p className="text-gray-900">{currentProduct.categoryName}</p>
               </div>
 
               <div className="flex justify-between">

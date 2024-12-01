@@ -78,4 +78,6 @@ export const routes = [
         path :'my-profile',
         page: MyProfile
     },
+
+      
 ];
