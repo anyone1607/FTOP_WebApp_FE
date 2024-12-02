@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEye, FaTrash, FaUndoAlt } from "react-icons/fa";
+import { AiOutlineUpload } from "react-icons/ai";
 import Modal from "react-modal";  // Import react-modal
 import './VoucherManagement.css'
 
@@ -17,7 +18,7 @@ const VoucherManagement = () => {
   const fetchVouchersData = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/voucher");
-      setVouchers(response.data?.vouchers || response.data || []);
+      setVouchers(response.data || []);
     } catch (error) {
       console.error("Error fetching vouchers:", error);
     }
@@ -25,7 +26,9 @@ const VoucherManagement = () => {
 
   const fetchDeletedVouchers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/voucher/deleted");
+      const response = await axios.get(
+        "http://localhost:8000/api/voucher/deleted"
+      );
       setDeletedVouchers(response.data || []);
     } catch (error) {
       console.error("Error fetching deleted vouchers:", error);
@@ -35,7 +38,9 @@ const VoucherManagement = () => {
   const fetchVoucherDetails = async (voucherId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8000/api/voucher/${voucherId}`);
+      const response = await axios.get(
+        `http://localhost:8000/api/voucher/${voucherId}`
+      );
       setVoucherDetails(response.data || {});
     } catch (error) {
       console.error("Error fetching voucher details:", error);
@@ -44,21 +49,27 @@ const VoucherManagement = () => {
     }
   };
 
-  // xoá mềm call api lại đến voucher data vs deletedvoucher (done)
+  // call api xoa mem tu be
+
   const softDeleteVoucher = async (voucherId) => {
     try {
-      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/delete`);
+      await axios.patch(
+        `http://localhost:8000/api/voucher/${voucherId}/delete`
+      );
       fetchVouchersData();
       fetchDeletedVouchers();
     } catch (error) {
       console.error("Error deleting voucher:", error);
     }
-  }
+  };
 
+  // call api khoi phuc tu be
 
   const restoreVoucher = async (voucherId) => {
     try {
-      await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/restore`);
+      await axios.patch(
+        `http://localhost:8000/api/voucher/${voucherId}/restore`
+      );
       fetchDeletedVouchers();
       fetchVouchersData();
     } catch (error) {
@@ -66,6 +77,7 @@ const VoucherManagement = () => {
     }
   };
 
+  // call api xoa that
   const permanentlyDeleteVoucher = async (voucherId) => {
     try {
       await axios.delete(`http://localhost:8000/api/voucher/${voucherId}`);
@@ -236,8 +248,11 @@ const VoucherManagement = () => {
   // );
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center mb-4 justify-between">
-        <h1 className="text-2xl font-bold text-center flex-grow">Voucher Management</h1>
+      <div className="flex items-center mb-4">
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <AiOutlineUpload size={20} />
+          Thêm bằng Excel
+        </button>
       </div>
       <button
         onClick={openModal} // Open modal when clicked
@@ -267,9 +282,15 @@ const VoucherManagement = () => {
                 <React.Fragment key={voucher.voucherId}>
                   <tr className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
-                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
-                    <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
-                    <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.voucherName}
+                    </td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.voucherDiscount}%
+                    </td>
+                    <td className="py-3 px-6 text-left">
+                      {voucher.store?.storeName}
+                    </td>
                     <td className="py-3 px-6 text-left">
                       {new Date(voucher.expiredDate).toLocaleDateString()}
                     </td>
@@ -296,13 +317,35 @@ const VoucherManagement = () => {
                             <div>Loading...</div>
                           ) : (
                             <div>
-                              <h3 className="font-semibold text-lg">Voucher Details</h3>
-                              <p><strong>Voucher ID:</strong> {voucherDetails.voucherId}</p>
-                              <p><strong>Voucher Name:</strong> {voucherDetails.voucherName}</p>
-                              <p><strong>Discount Percentage:</strong> {voucherDetails.voucherDiscount}%</p>
-                              <p><strong>Store:</strong> {voucherDetails.store?.storeName}</p>
-                              <p><strong>Expired Date:</strong> {new Date(voucherDetails.expiredDate).toLocaleDateString()}</p>
-                              <p><strong>Orders Applied:</strong> {voucherDetails.order?.length}</p>
+                              <h3 className="font-semibold text-lg">
+                                Voucher Details
+                              </h3>
+                              <p>
+                                <strong>Voucher ID:</strong>{" "}
+                                {voucherDetails.voucherId}
+                              </p>
+                              <p>
+                                <strong>Voucher Name:</strong>{" "}
+                                {voucherDetails.voucherName}
+                              </p>
+                              <p>
+                                <strong>Discount Percentage:</strong>{" "}
+                                {voucherDetails.voucherDiscount}%
+                              </p>
+                              <p>
+                                <strong>Store:</strong>{" "}
+                                {voucherDetails.store?.storeName}
+                              </p>
+                              <p>
+                                <strong>Expired Date:</strong>{" "}
+                                {new Date(
+                                  voucherDetails.expiredDate
+                                ).toLocaleDateString()}
+                              </p>
+                              <p>
+                                <strong>Orders Applied:</strong>{" "}
+                                {voucherDetails.order?.length}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -390,4 +433,3 @@ const VoucherManagement = () => {
 };
 
 export default VoucherManagement;
-

@@ -5,6 +5,7 @@ import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
 const ProductComponent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [stores, setStores] = useState([]); // Thêm state cho stores
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -19,9 +20,9 @@ const ProductComponent = () => {
     productImage: "",
     storeId: "",
   });
-  const itemsPerPage = 10;  
+  const itemsPerPage = 10;
 
-  useEffect(() => {
+  
     const fetchDataProducts = async () => {
       try {
         const productResponse = await axios.get(
@@ -40,22 +41,45 @@ const ProductComponent = () => {
         console.error("Error fetching data:", error);
       }
     };
-
+    useEffect(() => {
     fetchDataProducts();
   }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/category"); // URL API của danh mục
-        setCategories(response.data.data || []); // Đặt danh sách danh mục
+        const response = await axios.get("http://localhost:8000/api/category");
+        console.log("Categories fetched:", response.data); // Kiểm tra dữ liệu trả về từ API
+        setCategories(response.data || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
-
+  
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    console.log("Categories state updated:", categories); // Kiểm tra state categories sau khi cập nhật
+  }, [categories]);
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/store");
+        console.log("Stores fetched:", response.data);
+        setStores(response.data || []);
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+      }
+    };
+
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
+    console.log("Stores state updated:", stores);
+  }, [stores]);
 
   // Handle form input changes for add/update
   const handleInputChange = (e) => {
@@ -75,6 +99,14 @@ const ProductComponent = () => {
     if (selectedFile) {
       setFile(selectedFile);
     }
+  };
+
+  const handleStoreChange = (e) => {
+    const selectedStoreId = e.target.value;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      storeId: selectedStoreId,
+    }));
   };
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -104,8 +136,7 @@ const ProductComponent = () => {
       if (response.status === 200 || response.status === 201) {
         alert("Product added successfully!");
         setShowAddModal(false);
-        // Cập nhật lại danh sách sản phẩm
-        setProducts((prev) => [...prev, response.data.data]);
+        fetchDataProducts();
         console.log("Product added response:", response.data);
       } else {
         alert("Failed to add product. Please try again.");
@@ -240,7 +271,7 @@ const ProductComponent = () => {
       productName: product.productName,
       productPrice: product.productPrice,
       categoryId: product.categoryId,
-      status: product.status, 
+      status: product.status,
       productImage: product.productImage,
       storeId: product.storeId,
     });
@@ -255,7 +286,7 @@ const ProductComponent = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = products.length > 0 ? products.slice(indexOfFirstItem, indexOfLastItem) : [];
-  
+
   const totalPages = products.length > 0 ? Math.ceil(products.length / itemsPerPage) : 0;
 
   const getPaginationGroup = () => {
@@ -327,10 +358,13 @@ const ProductComponent = () => {
                 >
                   <td className="py-3 px-6 text-left">{product.productId}</td>
                   <td className="py-3 px-6 text-left">{product.productName}</td>
-                  <td className="py-3 px-6 text-left">
-                    {product.productPrice}
+                  <td className="border border-gray-200 px-4 py-2">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(product.productPrice)}
                   </td>
-                  <td className="py-3 px-6 text-left">{product.categoryName }</td>
+                  <td className="py-3 px-6 text-left">{product.categoryName}</td>
                   <td className="py-3 px-6 text-left">
                     {product.status ? (
                       <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
@@ -439,14 +473,11 @@ const ProductComponent = () => {
                   required
                 >
                   <option value="">Select a category</option>
-                  {categories.map((category) => {
-                    console.log("Rendering category:", category);
-                    return (
-                      <option key={category.categoryId} value={category.categoryId}>
-                        {category.categoryName}
-                      </option>
-                    );
-                  })}
+                  {categories.map((category) => (
+                    <option key={category.categoryId} value={category.categoryId}>
+                      {category.categoryName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="mb-4">
@@ -461,14 +492,20 @@ const ProductComponent = () => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700">Store Name</label>
-                <input
-                  type="text"
+                <select
                   name="storeId"
                   value={formData.storeId}
-                  onChange={handleInputChange}
+                  onChange={handleStoreChange}
                   className="border px-4 py-2 w-full"
                   required
-                />
+                >
+                  <option value="">Select a store</option>
+                  {stores.map((store) => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end space-x-2">
                 <button
