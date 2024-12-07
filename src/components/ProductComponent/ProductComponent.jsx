@@ -20,30 +20,86 @@ const ProductComponent = () => {
     productImage: "",
     storeId: "",
   });
+  const [imagePreview, setImagePreview] = useState(null); // State để lưu trữ URL của ảnh
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStore, setSelectedStore] = useState("");
+  const [userId, setUserId] = useState(null);
   const itemsPerPage = 10;
 
-  
-    const fetchDataProducts = async () => {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
       try {
-        const productResponse = await axios.get(
-          "http://localhost:8000/api/product"
-        );
-        const fetchedProducts =
-          productResponse.data.data?.products ||
-          productResponse.data.data ||
-          [];
-        if (Array.isArray(fetchedProducts)) {
-          setProducts(fetchedProducts);
-        } else {
-          setProducts([]);
-        }
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id);
+        setUserId(response.data.id);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching user ID:", error);
       }
     };
-    useEffect(() => {
-    fetchDataProducts();
+
+    fetchUserId();
   }, []);
+
+
+  //   const fetchDataProducts = async () => {
+  //     try {
+  //       const productResponse = await axios.get(
+  //         "http://localhost:8000/api/product"
+  //       );
+  //       const fetchedProducts =
+  //         productResponse.data.data?.products ||
+  //         productResponse.data.data ||
+  //         [];
+  //       if (Array.isArray(fetchedProducts)) {
+  //         setProducts(fetchedProducts);
+  //       } else {
+  //         setProducts([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+  //   useEffect(() => {
+  //   fetchDataProducts();
+  // }, []);
+  const fetchDataProducts = async () => {
+    try {
+      const role = localStorage.getItem('role');
+      const response = await axios.get("http://localhost:8000/api/product", {
+        params: {
+          userId: userId,
+          role: role
+        }
+      });
+      const fetchedProducts = response.data.data?.products || response.data.data || [];
+      setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchDataProducts();
+    }
+  }, [userId]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -55,7 +111,7 @@ const ProductComponent = () => {
         console.error("Error fetching categories:", error);
       }
     };
-  
+
     fetchCategories();
   }, []);
 
@@ -69,6 +125,16 @@ const ProductComponent = () => {
         const response = await axios.get("http://localhost:8000/api/store");
         console.log("Stores fetched:", response.data);
         setStores(response.data || []);
+        const role = localStorage.getItem('role');
+        if (role === 'store-owner' && response.data.length > 0) {
+          const store = response.data.find(store => store.ownerId === userId);
+          if (store) {
+            setFormData((prevFormData) => ({
+              ...prevFormData,
+              storeId: store.storeId // Automatically select the store for store-owner
+            }));
+          }
+        }
       } catch (error) {
         console.error("Error fetching stores:", error);
       }
@@ -98,7 +164,22 @@ const ProductComponent = () => {
 
     if (selectedFile) {
       setFile(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile)); // Tạo URL của ảnh và lưu trữ trong state
     }
+  };
+
+  const openAddModal = () => {
+    const role = localStorage.getItem('role');
+    if (role === 'store-owner' && stores.length > 0) {
+      const store = stores.find(store => store.ownerId === userId);
+      if (store) {
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          storeId: store.storeId // Automatically select the store for store-owner
+        }));
+      }
+    }
+    setShowAddModal(true);
   };
 
   const handleStoreChange = (e) => {
@@ -149,31 +230,7 @@ const ProductComponent = () => {
 
 
 
-  // Handle updating product
-  // const handleUpdateSubmit = async (e) => {
-  //   e.preventDefault();
 
-  //   try {
-  //     // Gửi yêu cầu PUT để cập nhật sản phẩm
-  //     await axios.put(
-  //       `http://localhost:8000/api/product/${currentProduct.productId}`,
-  //       formData
-  //     );
-
-  //     // Cập nhật lại danh sách sản phẩm trong state
-  //     setProducts(products.map(product =>
-  //       product.productId === currentProduct.productId
-  //         ? { ...product, ...formData } // Cập nhật sản phẩm đã chọn
-  //         : product // Các sản phẩm khác không thay đổi
-  //     ));
-
-  //     alert("Product updated successfully!");
-  //     setShowUpdateModal(false);
-  //   } catch (error) {
-  //     console.error("Error updating product:", error);
-  //     alert("Error occurred while updating the product. Please try again.");
-  //   }
-  // };
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
 
@@ -182,7 +239,6 @@ const ProductComponent = () => {
       !formData.productName ||
       !formData.productPrice ||
       !formData.categoryId ||
-      !file ||
       !formData.storeId
     ) {
       alert("Please fill out all fields.");
@@ -195,7 +251,11 @@ const ProductComponent = () => {
       formDataObj.append("productPrice", formData.productPrice);
       formDataObj.append("categoryId", formData.categoryId);
       formDataObj.append("storeId", formData.storeId);
-      formDataObj.append("productImage", file);
+      if (file) {
+        formDataObj.append("productImage", file);
+      } else {
+        formDataObj.append("productImage", currentProduct.productImage);
+      }
 
       // Log dữ liệu để kiểm tra trước khi gửi
       console.log("Form Data to be sent for update:", Object.fromEntries(formDataObj.entries()));
@@ -214,13 +274,7 @@ const ProductComponent = () => {
         alert("Product updated successfully!");
         setShowUpdateModal(false);
 
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.productId === currentProduct.productId
-              ? { ...product, ...response.data.data }
-              : product
-          )
-        );
+        fetchDataProducts();
       } else {
         alert("Failed to update product. Please try again.");
       }
@@ -252,13 +306,6 @@ const ProductComponent = () => {
   };
 
 
-  const refreshProducts = async () => {
-    const updatedProducts = await axios.get(
-      "http://localhost:8000/api/product"
-    );
-    setProducts(updatedProducts.data.data.products);
-  };
-
   // Open modals with selected product
   const handleView = (product) => {
     setCurrentProduct(product);
@@ -275,12 +322,44 @@ const ProductComponent = () => {
       productImage: product.productImage,
       storeId: product.storeId,
     });
+    setImagePreview(`http://localhost:8000${product.productImage}`);
     setShowUpdateModal(true);
   };
 
   const handleDeleteConfirmation = (product) => {
     setCurrentProduct(product);
     setShowDeleteModal(true);
+  };
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    fetchFilteredProducts(e.target.value, selectedCategory, selectedStore);
+  };
+
+  const handleCategoryFilterChange = (e) => {
+    setSelectedCategory(e.target.value);
+    fetchFilteredProducts(searchTerm, e.target.value, selectedStore);
+  };
+
+  const handleStoreFilterChange = (e) => {
+    setSelectedStore(e.target.value);
+    fetchFilteredProducts(searchTerm, selectedCategory, e.target.value);
+  };
+
+  const fetchFilteredProducts = async (filter, categoryName, storeName) => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/product/filter", {
+        params: {
+          filter,
+          categoryName,
+          storeName,
+          userId: userId,
+          role: localStorage.getItem('role')
+        },
+      });
+      setProducts(response.data.data || []);
+    } catch (error) {
+      console.error("Error filtering products:", error);
+    }
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -322,15 +401,67 @@ const ProductComponent = () => {
 
   return (
     <div className="container mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4 text-center">Product Management</h1>
       <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded"
-        >
-          <FaPlus className="mr-2" />
-          Add Product
-        </button>
+      <button
+  onClick={openAddModal}
+  className="flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded"
+>
+  <FaPlus className="mr-2" />
+  Add Product
+</button>
       </div>
+
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="flex justify-between mb-6 space-x-4">
+        <input
+          type="text"
+          placeholder="Search by product name"
+          className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+
+        <select
+          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedCategory}
+          onChange={handleCategoryFilterChange}
+        >
+          <option value="">All Categories</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.categoryName}>
+              {category.categoryName}
+            </option>
+          ))}
+        </select>
+
+        {/* <select
+          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedStore}
+          onChange={handleStoreFilterChange}
+        >
+          <option value="">All Stores</option>
+          {stores.map((store) => (
+            <option key={store.id} value={store.storeName}>
+              {store.storeName}
+            </option>
+          ))}
+        </select> */}
+        <select
+          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedStore}
+          onChange={handleStoreFilterChange}
+          disabled={localStorage.getItem('role') === 'store-owner'} // Disable dropdown if role is store-owner
+        >
+          <option value="">All Stores</option>
+          {stores.map((store) => (
+            <option key={store.id} value={store.storeName}>
+              {store.storeName}
+            </option>
+          ))}
+        </select>
+      </div>
+
 
       {/* Product Table */}
       <div className="overflow-x-auto">
@@ -382,7 +513,6 @@ const ProductComponent = () => {
                       alt={product.productName}
                       className="w-12 h-12 object-cover"
                     />
-
                   </td>
                   <td className="py-3 px-6 text-left">{product.storeName}</td>
                   <td className="py-3 px-6 text-left">
@@ -413,7 +543,6 @@ const ProductComponent = () => {
           </table>
         )}
       </div>
-
       {/* Pagination */}
       <div className="flex justify-center mt-4">
         <ul className="inline-flex items-center">
@@ -481,7 +610,7 @@ const ProductComponent = () => {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700">Product Image URL</label>
+                <label className="block text-gray-700">Product Image</label>
                 <input
                   type="file"
                   name="productImage"
@@ -489,8 +618,15 @@ const ProductComponent = () => {
                   className="border px-4 py-2 w-full"
                   required
                 />
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Product Preview"
+                    className="mt-4 w-32 h-32 object-cover"
+                  />
+                )}
               </div>
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="block text-gray-700">Store Name</label>
                 <select
                   name="storeId"
@@ -506,7 +642,43 @@ const ProductComponent = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
+              {/* <div className="mb-4">
+                <label className="block text-gray-700">Store Name</label>
+                <select
+                  name="storeId"
+                  value={formData.storeId}
+                  onChange={handleStoreChange}
+                  className="border px-4 py-2 w-full"
+                  required
+                  disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
+                >
+                  <option value="">Select a store</option>
+                  {stores.map((store) => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName}
+                    </option>
+                  ))}
+                </select>
+              </div> */}
+              <div className="mb-4">
+          <label className="block text-gray-700">Store Name</label>
+          <select
+            name="storeId"
+            value={formData.storeId}
+            onChange={handleStoreChange}
+            className="border px-4 py-2 w-full"
+            required
+            disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
+          >
+            <option value="">Select a store</option>
+            {stores.map((store) => (
+              <option key={store.storeId} value={store.storeId}>
+                {store.storeName}
+              </option>
+            ))}
+          </select>
+        </div>
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
@@ -609,36 +781,80 @@ const ProductComponent = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700">Category ID</label>
-                <input
-                  type="text"
+                <label className="block text-gray-700">Category</label>
+                <select
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleInputChange}
                   className="border px-4 py-2 w-full"
                   required
-                />
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category.categoryId} value={category.categoryId}>
+                      {category.categoryName}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700">Product Image </label>
-                <input
-                  type="file"
-                  name="productImage"
-                  onChange={handleFileChange}
-                  className="border px-4 py-2 w-full"
-                  required
-                />
+                <label className="block text-gray-700">Product Image</label>
+                <div className="flex items-center">
+                  <label className="bg-gray-500 text-white px-4 py-2 rounded cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      name="productImage"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="ml-4">
+                    {file ? file.name : currentProduct.productImage ? `Current file: ${currentProduct.productImage.split('/').pop()}` : "No file selected"}
+                  </span>
+                </div>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Product Preview"
+                    className="mt-4 w-32 h-32 object-cover"
+                  />
+                )}
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Store ID</label>
-                <input
-                  type="text"
+              {/* <div className="mb-4">
+                <label className="block text-gray-700">Store Name</label>
+                <select
                   name="storeId"
                   value={formData.storeId}
-                  onChange={handleInputChange}
+                  onChange={handleStoreChange}
                   className="border px-4 py-2 w-full"
                   required
-                />
+                >
+                  <option value="">Select a store</option>
+                  {stores.map((store) => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName}
+                    </option>
+                  ))}
+                </select>
+              </div> */}
+              <div className="mb-4">
+                <label className="block text-gray-700">Store Name</label>
+                <select
+                  name="storeId"
+                  value={formData.storeId}
+                  onChange={handleStoreChange}
+                  className="border px-4 py-2 w-full"
+                  required
+                  disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
+                >
+                  <option value="">Select a store</option>
+                  {stores.map((store) => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end space-x-2">
                 <button

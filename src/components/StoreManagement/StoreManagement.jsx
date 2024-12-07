@@ -97,6 +97,7 @@ const StoreManagement = () => {
 
   return (
     <div className="container mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4 text-center">Store Management</h1>
       <div className="flex items-center mb-4">
         <button
           onClick={() => setIsAdding(true)}

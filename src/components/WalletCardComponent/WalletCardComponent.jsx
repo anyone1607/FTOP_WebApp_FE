@@ -17,11 +17,7 @@ const WalletCardComponent = () => {
   const [recentTransactionsCount, setRecentTransactionsCount] = useState(0);
   const [bankTransferInfo, setBankTransferInfo] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [userInfo, setUserInfo] = useState({
-    email: localStorage.getItem('email'),
-    role: localStorage.getItem('role'),
-    name: localStorage.getItem('name')
-  });
+  const [userId, setUserId] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -39,9 +35,25 @@ const WalletCardComponent = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id); // Log user ID
+        setUserId(response.data.id); // Assuming the response contains the user object with an id field
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
 
   const fetchTotalData = async () => {
     try {
+      console.log("Fetching total data for user ID:", userId); // Log user ID before
       const [
         userResponse,
         orderResponse,
@@ -53,7 +65,7 @@ const WalletCardComponent = () => {
         axios.get("http://localhost:8000/api/order/countOrder"),
         axios.get("http://localhost:8000/api/order/countPrice"),
         axios.get("http://localhost:8000/api/transaction/countTransaction"),
-        axios.get("http://localhost:8000/api/banktransfer/28"),
+        axios.get(`http://localhost:8000/api/banktransfer/${userId}`),
       ]);
 
       setTotalUsers(userResponse.data.totalUsers);
@@ -67,14 +79,19 @@ const WalletCardComponent = () => {
   };
 
   useEffect(() => {
-    fetchTotalData();
-  }, []);
+    if (userId) {
+      fetchTotalData();
+      fetchTransactions();
+    }
+  }, [userId]);
+
+  
 
   const fetchTransactions = async () => {
     try {
-      const receiveUserId = 28;
+      console.log("Fetching transactions for user ID:", userId); // Log user ID 
       const response = await axios.get(
-        `http://localhost:8000/api/transaction/search/${receiveUserId}`
+        `http://localhost:8000/api/transaction/searchAll/${userId}`  
       );
       setTransactions(response.data);
     } catch (error) {

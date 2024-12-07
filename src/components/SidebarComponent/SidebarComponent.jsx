@@ -16,15 +16,27 @@ const SidebarComponent = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const name = params.get('name');
+    const token = params.get('token');
+    const email = params.get('email');
     const role = params.get('role');
+    const name = params.get('name');
 
-    if (name && role) {
-      localStorage.setItem('name', name);
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
       localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
       setUserInfo({ name, role });
     }
   }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    localStorage.removeItem('role');
+    localStorage.removeItem('name');
+    window.location.href = 'http://localhost:3000/home';
+  };
 
   return (
     <div className="w-64 h-screen bg-black text-white flex flex-col">
@@ -39,30 +51,28 @@ const SidebarComponent = () => {
           <span className="text-green-400 text-sm">● Online</span>
         </div>
       </div>
-
+  
       <div className="p-4 flex-grow">
         <ul className="space-y-4">
           <li
-            className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-              isActive("/auth/system/e-wallet")
+            className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/e-wallet")
                 ? "bg-white text-black"
                 : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-            }`}
+              }`}
           >
             <FaWallet className={`text-white ${isActive("/auth/system/e-wallet") ? "text-black" : "hover:text-black"}`} />
             <Link to="/auth/system/e-wallet" className="text-sm font-medium">
               E-Wallet
             </Link>
           </li>
-
+  
           {userInfo.role === 'admin' && (
             <>
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/account/admin")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/account/admin")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <MdManageAccounts className={`text-white ${isActive("/auth/system/account/admin") ? "text-black" : "hover:text-black"}`} />
                 <Link
@@ -74,15 +84,14 @@ const SidebarComponent = () => {
               </li>
             </>
           )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'manager') && (
+  
+          {(userInfo.role === 'admin' || userInfo.role === 'manager' || userInfo.role === 'store-owner') && (
             <>
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/voucher/admin")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/voucher/admin")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <GiTicket className={`text-white ${isActive("/auth/system/voucher/admin") ? "text-black" : "hover:text-black"}`} />
                 <Link
@@ -92,13 +101,12 @@ const SidebarComponent = () => {
                   Voucher Management
                 </Link>
               </li>
-
+  
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/store/manage")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/store/manage")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <FaStore className={`text-white ${isActive("/auth/system/store/manage") ? "text-black" : "hover:text-black"}`} />
                 <Link
@@ -110,15 +118,14 @@ const SidebarComponent = () => {
               </li>
             </>
           )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'manager' || userInfo.role === 'store owner') && (
+  
+          {(userInfo.role === 'admin' || userInfo.role === 'manager' || userInfo.role === 'store-owner') && (
             <>
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/product/owner")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/product/owner")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <FaUtensils className={`text-white ${isActive("/auth/system/product/owner") ? "text-black" : "hover:text-black"}`} />
                 <Link
@@ -128,26 +135,24 @@ const SidebarComponent = () => {
                   Product Management
                 </Link>
               </li>
-
+  
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/statistic")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/statistic")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <FaChartBar className={`text-white ${isActive("/auth/system/statistic") ? "text-black" : "hover:text-black"}`} />
                 <Link to="/auth/system/statistic" className="text-sm font-medium">
                   Statistics
                 </Link>
               </li>
-
+  
               <li
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                  isActive("/auth/system/order")
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("/auth/system/order")
                     ? "bg-white text-black"
                     : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-                }`}
+                  }`}
               >
                 <MdOutlineFoodBank className={`text-white ${isActive("/auth/system/order") ? "text-black" : "hover:text-black"}`} />
                 <Link to="/auth/system/order" className="text-sm font-medium">
@@ -156,14 +161,13 @@ const SidebarComponent = () => {
               </li>
             </>
           )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'staff' || userInfo.role === 'store owner') && (
+  
+          {(userInfo.role === 'admin' || userInfo.role === 'staff' || userInfo.role === 'store-owner') && (
             <li
-              className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                isActive("#")
+              className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("#")
                   ? "bg-white text-black"
                   : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-              }`}
+                }`}
             >
               <SiBitcoincash className={`text-white ${isActive("#") ? "text-black" : "hover:text-black"}`} />
               <Link to="#" className="text-sm font-medium">
@@ -171,18 +175,16 @@ const SidebarComponent = () => {
               </Link>
             </li>
           )}
-
+  
           <li
-            className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-              isActive("#")
+            className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${isActive("#")
                 ? "bg-white text-black"
                 : "hover:text-black hover:bg-white hover:scale-105 transition-transform duration-200 ease-in-out"
-            }`}
+              }`}
+            onClick={handleLogout} // Thêm sự kiện onClick
           >
             <LuLogOut className={`text-white ${isActive("#") ? "text-black" : "hover:text-black"}`} />
-            <Link to="#" className="text-sm font-medium">
-              Logout
-            </Link>
+            <span className="text-sm font-medium">Logout</span> {/* Thay đổi Link thành span */}
           </li>
         </ul>
       </div>
