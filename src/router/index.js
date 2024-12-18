@@ -7,12 +7,19 @@ import AccountManagement from "../components/AccountManagement/AccountManagement
 import VoucherManagement from "../components/VoucherManagement/VoucherManagement";
 import StoreManagement from "../components/StoreManagement/StoreManagement";
 import Statistics from "../components/StatisticComponent/Statistics";
-import Home from "../pages/HomePage/Home";
-import ZaloPay from "../pages/ZaloPay/ZaloPay";
+import HomePage from "../pages/HomePage/HomePage";
+import Withdraw from "../components/WithdrawMoney/WithdrawMoney";
+import WithdrawDetail from "../components/WithdrawMoney Detail/WithdrawMoneyDetail";
+import Transaction from "../components/Transaction/Transaction";
+import Test from "../pages/Test";
 export const routes = [
     {
         path: 'home',
-        page: Home,
+        page: HomePage,
+    },
+    {
+        path: 'test',
+        page: Test,
     },
     {
         path: 'dashboard',
@@ -47,8 +54,16 @@ export const routes = [
         page: Statistics,
     },
     {
-        path :'zalopay',
-        page: ZaloPay
+        path: 'withdraw',
+        page: Withdraw,
+    },
+    {
+        path: 'withdraw/detail',
+        page: WithdrawDetail,
+    },
+    {
+        path: 'transaction',
+        page: Transaction,
     },
     {
         path: '*',
