@@ -1,0 +1,11 @@
+.relative .absolute {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .relative .absolute:hover {
+    transform: scale(1.05);
+  }
+  
+  .relative .absolute img {
+    border-radius: 8px;
+  }

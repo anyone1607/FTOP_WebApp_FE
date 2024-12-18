@@ -58,27 +58,6 @@ const ProductComponent = () => {
   }, []);
 
 
-  //   const fetchDataProducts = async () => {
-  //     try {
-  //       const productResponse = await axios.get(
-  //         "http://localhost:8000/api/product"
-  //       );
-  //       const fetchedProducts =
-  //         productResponse.data.data?.products ||
-  //         productResponse.data.data ||
-  //         [];
-  //       if (Array.isArray(fetchedProducts)) {
-  //         setProducts(fetchedProducts);
-  //       } else {
-  //         setProducts([]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-  //   useEffect(() => {
-  //   fetchDataProducts();
-  // }, []);
   const fetchDataProducts = async () => {
     try {
       const role = localStorage.getItem('role');
@@ -141,7 +120,7 @@ const ProductComponent = () => {
     };
 
     fetchStores();
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     console.log("Stores state updated:", stores);
@@ -403,13 +382,13 @@ const ProductComponent = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4 text-center">Product Management</h1>
       <div className="mb-4 flex justify-between items-center">
-      <button
-  onClick={openAddModal}
-  className="flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded"
->
-  <FaPlus className="mr-2" />
-  Add Product
-</button>
+        <button
+          onClick={openAddModal}
+          className="flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded"
+        >
+          <FaPlus className="mr-2" />
+          Add Product
+        </button>
       </div>
 
       {/* Thanh tìm kiếm và bộ lọc */}
@@ -447,19 +426,20 @@ const ProductComponent = () => {
             </option>
           ))}
         </select> */}
-        <select
-          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={selectedStore}
-          onChange={handleStoreFilterChange}
-          disabled={localStorage.getItem('role') === 'store-owner'} // Disable dropdown if role is store-owner
-        >
-          <option value="">All Stores</option>
-          {stores.map((store) => (
-            <option key={store.id} value={store.storeName}>
-              {store.storeName}
-            </option>
-          ))}
-        </select>
+        {localStorage.getItem('role') !== 'store-owner' && (
+          <select
+            className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={selectedStore}
+            onChange={handleStoreFilterChange}
+          >
+            <option value="">All Stores</option>
+            {stores.map((store) => (
+              <option key={store.id} value={store.storeName}>
+                {store.storeName}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
 
@@ -477,7 +457,9 @@ const ProductComponent = () => {
                 <th className="py-3 px-6 text-left">Category Name</th>
                 <th className="py-3 px-6 text-left">Status</th>
                 <th className="py-3 px-6 text-left">Product Image</th>
+                {localStorage.getItem('role') !== 'store-owner' && (
                 <th className="py-3 px-6 text-left">Store Name</th>
+              )}
                 <th className="py-3 px-6 text-left">Action</th>
               </tr>
             </thead>
@@ -514,7 +496,9 @@ const ProductComponent = () => {
                       className="w-12 h-12 object-cover"
                     />
                   </td>
+                  {localStorage.getItem('role') !== 'store-owner' && (
                   <td className="py-3 px-6 text-left">{product.storeName}</td>
+                  )}
                   <td className="py-3 px-6 text-left">
                     <div className="flex items-center space-x-2">
                       <button
@@ -662,23 +646,26 @@ const ProductComponent = () => {
                 </select>
               </div> */}
               <div className="mb-4">
-          <label className="block text-gray-700">Store Name</label>
-          <select
-            name="storeId"
-            value={formData.storeId}
-            onChange={handleStoreChange}
-            className="border px-4 py-2 w-full"
-            required
-            disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
-          >
-            <option value="">Select a store</option>
-            {stores.map((store) => (
-              <option key={store.storeId} value={store.storeId}>
-                {store.storeName}
-              </option>
-            ))}
-          </select>
-        </div>
+                {localStorage.getItem('role') !== 'store-owner' && (
+                  <>
+                    <label className="block text-gray-700">Store Name</label>
+                    <select
+                      name="storeId"
+                      value={formData.storeId}
+                      onChange={handleStoreChange}
+                      className="border px-4 py-2 w-full"
+                      required
+                    >
+                      <option value="">Select a store</option>
+                      {stores.map((store) => (
+                        <option key={store.storeId} value={store.storeId}>
+                          {store.storeName}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+              </div>
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
@@ -839,6 +826,8 @@ const ProductComponent = () => {
                 </select>
               </div> */}
               <div className="mb-4">
+              {localStorage.getItem('role') !== 'store-owner' && (
+                  <>
                 <label className="block text-gray-700">Store Name</label>
                 <select
                   name="storeId"
@@ -855,6 +844,8 @@ const ProductComponent = () => {
                     </option>
                   ))}
                 </select>
+                </>
+                )}
               </div>
               <div className="flex justify-end space-x-2">
                 <button

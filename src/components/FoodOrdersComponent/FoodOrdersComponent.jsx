@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTrash, FaEye } from "react-icons/fa";
+import axios from "axios";
 
 const FoodOrdersComponent = () => {
   const [orders, setOrders] = useState([]);
@@ -15,20 +16,81 @@ const FoodOrdersComponent = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [stores, setStores] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [role, setRole] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
 
+  // useEffect(() => {
+  //   const fetchOrders = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch("http://localhost:8000/api/order");
+
+  //       if (!response.ok) {
+  //         throw new Error("Failed to fetch orders");
+  //       }
+
+  //       const ordersData = await response.json();
+  //       setOrders(ordersData);
+  //     } catch (err) {
+  //       setError(err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchOrders();
+  // }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+  
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id);
+        setUserId(response.data.id);
+        setRole(localStorage.getItem('role'));
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+  
+    fetchUserId();
+  }, []);
+  
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:8000/api/order");
-
-        if (!response.ok) {
+        const role = localStorage.getItem('role');
+        const response = await axios.get("http://localhost:8000/api/order", {
+          params: {
+            userId: userId,
+            role: role
+          }
+        });
+  
+        if (response.status !== 200) {
           throw new Error("Failed to fetch orders");
         }
-
-        const ordersData = await response.json();
+  
+        const ordersData = response.data;
         setOrders(ordersData);
       } catch (err) {
         setError(err.message);
@@ -36,9 +98,11 @@ const FoodOrdersComponent = () => {
         setLoading(false);
       }
     };
-
-    fetchOrders();
-  }, []);
+  
+    if (userId && role) {
+      fetchOrders();
+    }
+  }, [userId, role]);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -222,6 +286,7 @@ const FoodOrdersComponent = () => {
           onChange={handleSearchChange}
         />
 
+{role !== 'store-owner' && (
         <select
           className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={selectedStore}
@@ -234,6 +299,7 @@ const FoodOrdersComponent = () => {
             </option>
           ))}
         </select>
+      )}
 
         <div className="relative">
           <label htmlFor="startDate" className="absolute -top-3 left-2 bg-white px-1 text-gray-700">From Date</label>

@@ -19,6 +19,12 @@ const VoucherManagement = () => {
   const [minDiscount, setMinDiscount] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
   const [userId, setUserId] = useState(null);
+  const [restoreExpiredDate, setRestoreExpiredDate] = useState('');
+  const [restoreCreateDate, setRestoreCreateDate] = useState('');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
+
+
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -58,6 +64,29 @@ const VoucherManagement = () => {
   //     console.error("Error fetching vouchers:", error);
   //   }
   // };
+
+  const handleRestoreExpiredDateChange = (e) => {
+    const newEndDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
+    if (new Date(newEndDate) < new Date(today)) {
+      alert("End Date cannot be in the past.");
+    } else {
+      setEndDate(newEndDate);
+    }
+  };
+  
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
+    if (new Date(newStartDate) < new Date(today)) {
+      alert("Start Date cannot be in the past.");
+    } else if (new Date(newStartDate) > new Date(endDate)) {
+      alert("Start Date cannot be after End Date.");
+    } else {
+      setStartDate(newStartDate);
+    }
+  };
+
   const fetchVouchersData = async () => {
     try {
       const role = localStorage.getItem('role');
@@ -115,16 +144,30 @@ const VoucherManagement = () => {
   // call api khoi phuc tu be
 
   const restoreVoucher = async (voucherId) => {
+    if (!endDate || !startDate) {
+      alert("Please select both start date and expired date.");
+      return;
+    }
+  
     try {
-      await axios.patch(
-        `http://localhost:8000/api/voucher/${voucherId}/restore`
-      );
-      fetchDeletedVouchers();
-      fetchVouchersData();
+      const response = await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/restore`, {
+        expiredDate: endDate,
+        createDate: startDate,
+      });
+      if (response.status === 200) {
+        alert("Voucher restored successfully!");
+       // Cập nhật lại danh sách voucher đã xóa
+       fetchDeletedVouchers();
+       // Thêm voucher đã khôi phục vào danh sách voucher
+       const restoredVoucher = response.data;
+       setVouchers((prevVouchers) => [...prevVouchers, restoredVoucher]);
+      }
     } catch (error) {
       console.error("Error restoring voucher:", error);
+      alert("Failed to restore voucher.");
     }
   };
+
 
   // call api xoa that
   const permanentlyDeleteVoucher = async (voucherId) => {
@@ -165,7 +208,7 @@ const VoucherManagement = () => {
   };
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);  
+    setSearchTerm(e.target.value);
     fetchFilteredVouchers(e.target.value, minDiscount, maxDiscount);
   };
 
@@ -173,16 +216,18 @@ const VoucherManagement = () => {
     const [min, max] = e.target.value.split('-');
     setMinDiscount(min);
     setMaxDiscount(max);
-    fetchFilteredVouchers(searchTerm, min, max);
+    fetchFilteredVouchers(searchTerm || '', min, max);
   };
 
-  const fetchFilteredVouchers = async (search, min, max) => {
+  const fetchFilteredVouchers = async (filter, minDiscount, maxDiscount) => {
     try {
       const response = await axios.get("http://localhost:8000/api/voucher/filter", {
         params: {
-          filter: search,
-          minDiscount: min,
-          maxDiscount: max,
+          filter,
+          minDiscount,
+          maxDiscount,
+          userId: userId,
+          role: localStorage.getItem('role')
         },
       });
       setVouchers(response.data || []);
@@ -335,63 +380,77 @@ const VoucherManagement = () => {
 
       {/* Modal for Deleted Vouchers */}
       <Modal
-        isOpen={isModalOpen}
-        onRequestClose={closeModal} // Close modal when clicked outside
-        contentLabel="Deleted Vouchers"
-        className="modal-content" // Custom class for styling
-        overlayClassName="modal-overlay" // Custom class for overlay
-        ariaHideApp={false} // Disable aria app for accessibility issues
-      >
-        <div className="modal-header flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Deleted Vouchers</h2>
-          <button
-            onClick={closeModal}
-            className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition duration-300"
-          >
-            X
-          </button>
-        </div>
-        <div className="overflow-x-auto mt-4">
-          <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
-            <thead>
-              <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Voucher ID</th>
-                <th className="py-3 px-6 text-left">Voucher Name</th>
-                <th className="py-3 px-6 text-left">Store</th>
-                <th className="py-3 px-6 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deletedVouchers.length > 0 ? (
-                deletedVouchers.map((voucher) => (
-                  <tr key={voucher.voucherId} className="border-b border-gray-200">
-                    <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
-                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
-                    <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
-                    <td className="py-3 px-6 flex space-x-2">
-                      <button
-                        onClick={() => restoreVoucher(voucher.voucherId)}
-                        className="bg-green-500 text-white px-2 py-1 rounded flex items-center hover:bg-green-600 transition duration-300"
-                      >
-                        <FaUndoAlt className="mr-1" /> Restore
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="text-center py-3 px-6">
-                    No deleted vouchers found.
+      isOpen={isModalOpen}
+      onRequestClose={closeModal}
+      contentLabel="Deleted Vouchers"
+      className="modal-content"
+      overlayClassName="modal-overlay"
+      ariaHideApp={false}
+    >
+      <div className="modal-header flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Deleted Vouchers</h2>
+        <button
+          onClick={closeModal}
+          className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition duration-300"
+        >
+          X
+        </button>
+      </div>
+      <div className="overflow-x-auto mt-4">
+        <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
+          <thead>
+            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
+              <th className="py-3 px-6 text-left">Voucher ID</th>
+              <th className="py-3 px-6 text-left">Voucher Name</th>
+              <th className="py-3 px-6 text-left">Store</th>
+              <th className="py-3 px-6 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deletedVouchers.length > 0 ? (
+              deletedVouchers.map((voucher) => (
+                <tr key={voucher.voucherId} className="border-b border-gray-200">
+                  <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
+                  <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
+                  <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                  <td className="py-3 px-6 flex space-x-2">
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={handleStartDateChange}
+                      placeholder="Start Date"
+                      className="border border-gray-300 p-2 rounded"
+                    />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={handleRestoreExpiredDateChange}
+                      placeholder="Expired Date"
+                      className="border border-gray-300 p-2 rounded"
+                    />
+                    <button
+                      onClick={() => restoreVoucher(voucher.voucherId)}
+                      className="bg-green-500 text-white px-2 py-1 rounded flex items-center hover:bg-green-600 transition duration-300"
+                    >
+                      <FaUndoAlt className="mr-1" /> Restore
+                    </button>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Modal>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center py-3 px-6">
+                  No deleted vouchers found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Modal>
     </div>
   );
-  
+
 };
 
 export default VoucherManagement;
