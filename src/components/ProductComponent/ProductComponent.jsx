@@ -176,11 +176,17 @@ const ProductComponent = () => {
       alert("Please fill out all fields.");
       return;
     }
+    const productPrice = parseFloat(formData.productPrice);
+  if (isNaN(productPrice)) {
+    alert("Product price must be a valid number.");
+    return;
+  }
+
 
     try {
       const formDataObj = new FormData();
       formDataObj.append("productName", formData.productName);
-      formDataObj.append("productPrice", formData.productPrice);
+      formDataObj.append("productPrice", productPrice);
       formDataObj.append("categoryId", formData.categoryId);
       formDataObj.append("storeId", formData.storeId);
       formDataObj.append("productImage", file);

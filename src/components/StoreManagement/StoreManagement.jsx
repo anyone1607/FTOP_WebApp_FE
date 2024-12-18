@@ -587,7 +587,7 @@ const StoreManagement = () => {
                     Phone
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     placeholder="Enter phone number"
                     value={newStore.storePhone}
                     onChange={(e) =>
