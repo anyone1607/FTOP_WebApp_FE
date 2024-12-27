@@ -11,6 +11,9 @@ import HomePage from "../pages/HomePage/HomePage";
 import Withdraw from "../components/WithdrawMoney/WithdrawMoney";
 import WithdrawDetail from "../components/WithdrawMoney Detail/WithdrawMoneyDetail";
 import Transaction from "../components/Transaction/Transaction";
+import StoreDetail from "../components/StoreDetail/StoreDetail";
+import About from "../pages/About/ProfileCard";
+import Request from "../components/RequestWithdrawMoney/Request";
 import Test from "../pages/Test";
 export const routes = [
     {
@@ -64,6 +67,18 @@ export const routes = [
     {
         path: 'transaction',
         page: Transaction,
+    },
+    {
+        path: 'store/:storeId',
+        page: StoreDetail,
+    },
+    {
+        path: 'about',
+        page: About,
+    },
+    {
+        path: 'request',
+        page: Request,
     },
     {
         path: '*',

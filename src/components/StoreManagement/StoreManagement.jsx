@@ -54,7 +54,7 @@ const StoreManagement = () => {
     setSelectedStoreId(selectedStoreId === storeId ? null : storeId);
   };
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

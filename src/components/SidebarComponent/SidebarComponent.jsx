@@ -11,6 +11,7 @@ import {
 import { FaHistory } from "react-icons/fa";
 import { GiTakeMyMoney, GiWallet } from "react-icons/gi";
 import { VscTag } from "react-icons/vsc";
+import { FiArrowUpCircle } from "react-icons/fi";
 const SidebarComponent = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -31,15 +32,56 @@ const SidebarComponent = () => {
       <div className="flex-grow p-4">
         <ul className="space-y-2">
           {[
-            { path: "/auth/system/e-wallet", label: "E-Wallet", icon: <GiWallet /> },
-            { path: "/auth/system/account/admin", label: "Account Management", icon: <MdSupervisorAccount /> },
-            { path: "/auth/system/product/owner", label: "Product Management", icon: <MdProductionQuantityLimits /> },
-            { path: "/auth/system/voucher/admin", label: "Voucher Management", icon: <VscTag /> },
-            { path: "/auth/system/statistic", label: "Statistics", icon: <MdBarChart /> },
-            { path: "/auth/system/order", label: "Order Management", icon: <MdOutlineAssignment /> },
-            { path: "/auth/system/store/manage", label: "Store Management", icon: <MdStorefront /> },
-            { path: "/auth/system/withdraw", label: "Withdraw Money", icon: <GiTakeMyMoney /> },
-            { path: "/auth/system/transaction", label: "Transaction History", icon: <FaHistory /> },
+            {
+              path: "/auth/system/e-wallet",
+              label: "E-Wallet",
+              icon: <GiWallet />,
+            },
+            {
+              path: "/auth/system/account/admin",
+              label: "Account Management",
+              icon: <MdSupervisorAccount />,
+            },
+            {
+              path: "/auth/system/product/owner",
+              label: "Product Management",
+              icon: <MdProductionQuantityLimits />,
+            },
+            {
+              path: "/auth/system/voucher/admin",
+              label: "Voucher Management",
+              icon: <VscTag />,
+            },
+            {
+              path: "/auth/system/statistic",
+              label: "Statistics",
+              icon: <MdBarChart />,
+            },
+            {
+              path: "/auth/system/order",
+              label: "Order Management",
+              icon: <MdOutlineAssignment />,
+            },
+            {
+              path: "/auth/system/store/manage",
+              label: "Store Management",
+              icon: <MdStorefront />,
+            },
+            {
+              path: "/auth/system/withdraw",
+              label: "Withdraw Money",
+              icon: <GiTakeMyMoney />,
+            },
+            {
+              path: "/auth/system/request",
+              label: "Request",
+              icon: <FiArrowUpCircle />,
+            },
+            {
+              path: "/auth/system/transaction",
+              label: "Transaction History",
+              icon: <FaHistory />,
+            },
             { path: "#", label: "Logout", icon: <MdLogout /> },
           ].map((item, index) => (
             <li key={index}>

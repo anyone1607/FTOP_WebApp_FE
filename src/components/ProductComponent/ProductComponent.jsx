@@ -18,7 +18,7 @@ const ProductComponent = () => {
     productImage: "",
     storeId: "",
   });
-  const itemsPerPage = 10;
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const fetchDataProducts = async () => {

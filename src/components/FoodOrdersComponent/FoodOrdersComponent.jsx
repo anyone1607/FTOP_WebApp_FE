@@ -95,7 +95,7 @@ const FoodOrdersComponent = () => {
     }
   };
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -196,7 +196,7 @@ const FoodOrdersComponent = () => {
                     })}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    {order.voucher.voucherName}
+                    {order.voucher?.voucherName || "No Voucher"}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {order.note}

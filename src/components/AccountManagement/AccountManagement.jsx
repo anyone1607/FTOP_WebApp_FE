@@ -59,7 +59,7 @@ const AccountManagement = () => {
     fetchUsers();
   }, []);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 9;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -102,86 +102,6 @@ const AccountManagement = () => {
 
   return (
     <div className="p-6 text-center">
-      {/* <table className="min-w-full table-auto border-collapse border border-gray-200">
-        <thead>
-          <tr>
-            <th className="border border-gray-200 px-4 py-2">ID</th>
-            <th className="border border-gray-200 px-4 py-2">Name</th>
-            <th className="border border-gray-200 px-4 py-2">Role</th>
-            <th className="border border-gray-200 px-4 py-2">Wallet Balance</th>
-            <th className="border border-gray-200 px-4 py-2">Status</th>
-            <th className="border border-gray-200 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length > 0 ? (
-            currentItems.map((user) => (
-              <tr key={user.id}>
-                <td className="border border-gray-200 px-4 py-2">{user.id}</td>
-                <ul class="p-6 divide-y divide-slate-200">
-                  <li class="flex items-center py-4 first:pt-0 last:pb-0">
-                    <div class="flex-shrink-0">
-                      {user.avatar ? (
-                        <img
-                          src={user.avatar}
-                          alt="Avatar"
-                          class="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span class="text-sm text-gray-500">No Avatar</span>
-                      )}
-                    </div>
-                    <div class="ml-4 overflow-hidden">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        {user.email}
-                      </p>
-                      <p class="text-sm text-gray-500 truncate">
-                        {user.displayName}
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-                <td className="border border-gray-200 px-4 py-2">
-                  {user.role}
-                </td>
-                <td className="border border-gray-200 px-4 py-2">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(user.walletBalance)}
-                </td>
-                <td
-                  className={`border border-gray-200 px-4 py-2 ${
-                    user.isActive
-                      ? "text-green-600 animate-blink"
-                      : "text-red-600 animate-blink"
-                  }`}
-                >
-                  {user.isActive ? "Active" : "Inactive"}
-                </td>
-                <td className="border border-gray-200 px-4 py-2">
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => handleUserClick(user)}
-                  >
-                    View Bank Transfers
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                className="border border-gray-200 px-4 py-2 text-center"
-                colSpan="7"
-              >
-                No users found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table> */}
-
       <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
         <thead>
           <tr>
@@ -215,7 +135,7 @@ const AccountManagement = () => {
                   <div className="flex items-center space-x-4">
                     <img
                       src={user.avatar}
-                      alt="Null"
+                      alt=""
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div>
@@ -237,7 +157,7 @@ const AccountManagement = () => {
                       user.role === "manager" ||
                       user.role === "staff"
                         ? "bg-purple-100 text-purple-600"
-                        : user.role === "owner" || user.role === "customer"
+                        : user.role === "owner" || user.role === "student"
                         ? "bg-green-100 text-green-600"
                         : "bg-orange-100 text-orange-600"
                     }`}
@@ -323,85 +243,6 @@ const AccountManagement = () => {
           ))}
         </ul>
       </div>
-
-      {/* Popup Modal */}
-      {/* {showPopup && selectedUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
-            <h2 className="text-xl font-bold mb-4">
-              Bank Transfers for {selectedUser.displayName}
-            </h2>
-            {bankTransfers.length > 0 ? (
-              <table className="min-w-full table-auto border-collapse border border-gray-200">
-                <thead>
-                  <tr>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Account Number
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Bank Name
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Transfer Amount
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Transfer Date
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bankTransfers.map((transfer) => (
-                    <tr key={transfer.transferId}>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.accountNumber}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.bankName}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.transferAmount
-                          ? `$ ${parseFloat(transfer.transferAmount).toFixed(
-                              2
-                            )}`
-                          : ""}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.transferDate
-                          ? new Date(transfer.transferDate).toLocaleDateString()
-                          : ""}
-                      </td>
-                      <td
-                        className={`border border-gray-200 px-4 py-2 ${
-                          transfer.status === true
-                            ? "text-green-600"
-                            : transfer.status === false
-                            ? "text-red-600"
-                            : ""
-                        }`}
-                      >
-                        {transfer.status === true
-                          ? "Completed"
-                          : transfer.status === false
-                          ? "Pending"
-                          : ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>No bank transfers found for this user.</p>
-            )}
-            <button
-              className="bg-red-500 text-white px-4 py-2 rounded mt-4"
-              onClick={handleClosePopup}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )} */}
 
       {showPopup && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
