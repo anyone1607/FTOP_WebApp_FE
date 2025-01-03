@@ -12,6 +12,7 @@ import { FaHistory } from "react-icons/fa";
 import { GiTakeMyMoney, GiWallet } from "react-icons/gi";
 import { VscTag } from "react-icons/vsc";
 import { FiArrowUpCircle } from "react-icons/fi";
+import { GrTransaction } from "react-icons/gr";
 const SidebarComponent = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -73,12 +74,17 @@ const SidebarComponent = () => {
               icon: <GiTakeMyMoney />,
             },
             {
-              path: "/auth/system/request",
-              label: "Request",
+              path: "/auth/system/bank-transfer", // Xem lịch sử nạp rút
+              label: "BankTransfer History",
+              icon: <GrTransaction />,
+            },
+            {
+              path: "/auth/system/confirm", // Yêu cầu rút tiền giữa cửa hàng với admin (transaction)
+              label: "Request Withdraw",
               icon: <FiArrowUpCircle />,
             },
             {
-              path: "/auth/system/transaction",
+              path: "/auth/system/transaction", // Xem lịch sử giao dịch cửa hàng với người mua hàng (order)
               label: "Transaction History",
               icon: <FaHistory />,
             },

@@ -13,7 +13,8 @@ import WithdrawDetail from "../components/WithdrawMoney Detail/WithdrawMoneyDeta
 import Transaction from "../components/Transaction/Transaction";
 import StoreDetail from "../components/StoreDetail/StoreDetail";
 import About from "../pages/About/ProfileCard";
-import Request from "../components/RequestWithdrawMoney/Request";
+import BankTranfer from "../components/BankTransferHistory/BankTransferHistory";
+import Confirm from "../components/ConfirmRequestWithdraw/ConfirmRequestWithdraw";
 import Test from "../pages/Test";
 export const routes = [
     {
@@ -77,8 +78,12 @@ export const routes = [
         page: About,
     },
     {
-        path: 'request',
-        page: Request,
+        path: 'bank-transfer',
+        page: BankTranfer,
+    },
+    {
+        path: 'confirm',
+        page: Confirm,
     },
     {
         path: '*',

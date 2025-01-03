@@ -10,7 +10,7 @@ const paymentMethods = [
     icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR06mEeOPVMD8-o8uzcfLq3xJQGSYEcEfeA1Q&s",
   },
   {
-    name: "Thanh toán trực tuyến",
+    name: "PayPal",
     icon: "https://cdn.pixabay.com/photo/2018/05/08/21/29/paypal-3384015_640.png",
   },
   {

@@ -36,19 +36,24 @@ const WalletCardComponent = () => {
     fetch("http://localhost:8000/api/store")
       .then((response) => response.json())
       .then((data) => {
+        console.log("API Response:", data);
+  
         if (!data || data.length === 0) {
           console.error("API trả về dữ liệu rỗng!");
           return;
         }
-
-        const labels = data[0]?.sales.labels || [];
-
+  
+        const labels = data[0]?.sales?.labels?.map(label => `${label.month} ${label.year}`) || [];
+        if (labels.length === 0) {
+          console.warn("Không có dữ liệu labels!");
+        }
+  
         const barDatasets = data.map((store, index) => ({
           label: `${store.storeName} - Products Sold`,
           data: store.sales.data || [],
           backgroundColor: colors[index % colors.length],
         }));
-
+  
         const lineDatasets = data.map((store, index) => ({
           label: `${store.storeName} - Revenue`,
           data: store.sales.data1 || [],
@@ -56,12 +61,13 @@ const WalletCardComponent = () => {
           backgroundColor: "transparent",
           tension: 0.4,
         }));
-
+  
         setBarData({ labels, datasets: barDatasets });
         setLineData({ labels, datasets: lineDatasets });
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+  
 
   const fetchTotalData = async () => {
     try {
