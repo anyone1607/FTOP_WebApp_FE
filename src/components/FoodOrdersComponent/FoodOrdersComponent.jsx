@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { FaTrash, FaEye } from "react-icons/fa";
 import axios from "axios";
 
@@ -49,7 +50,7 @@ const FoodOrdersComponent = () => {
     const email = params.get('email');
     const role = params.get('role');
     const name = params.get('name');
-  
+
     if (token) {
       localStorage.setItem('token', token);
       localStorage.setItem('email', email);
@@ -57,7 +58,7 @@ const FoodOrdersComponent = () => {
       localStorage.setItem('name', name);
     }
   }, []);
-  
+
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -70,10 +71,10 @@ const FoodOrdersComponent = () => {
         console.error("Error fetching user ID:", error);
       }
     };
-  
+
     fetchUserId();
   }, []);
-  
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -85,11 +86,11 @@ const FoodOrdersComponent = () => {
             role: role
           }
         });
-  
+
         if (response.status !== 200) {
           throw new Error("Failed to fetch orders");
         }
-  
+
         const ordersData = response.data;
         setOrders(ordersData);
       } catch (err) {
@@ -98,7 +99,7 @@ const FoodOrdersComponent = () => {
         setLoading(false);
       }
     };
-  
+
     if (userId && role) {
       fetchOrders();
     }
@@ -286,20 +287,20 @@ const FoodOrdersComponent = () => {
           onChange={handleSearchChange}
         />
 
-{role !== 'store-owner' && (
-        <select
-          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={selectedStore}
-          onChange={handleStoreFilterChange}
-        >
-          <option value="">All Stores</option>
-          {stores.map((store) => (
-            <option key={store.storeId} value={store.storeName}>
-              {store.storeName}
-            </option>
-          ))}
-        </select>
-      )}
+        {role !== 'owner' && (
+          <select
+            className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={selectedStore}
+            onChange={handleStoreFilterChange}
+          >
+            <option value="">All Stores</option>
+            {stores.map((store) => (
+              <option key={store.storeId} value={store.storeName}>
+                {store.storeName}
+              </option>
+            ))}
+          </select>
+        )}
 
         <div className="relative">
           <label htmlFor="startDate" className="absolute -top-3 left-2 bg-white px-1 text-gray-700">From Date</label>
@@ -330,30 +331,39 @@ const FoodOrdersComponent = () => {
         <p className="text-red-500">Error: {error}</p>
       ) : filteredOrders.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
+          <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Order ID</th>
-                <th className="py-3 px-6 text-left">User Name</th>
-                <th className="py-3 px-6 text-left">Store Name</th>
-                <th className="py-3 px-6 text-left">Order Status</th>
-                <th className="py-3 px-6 text-left">Order Date</th>
-                <th className="py-3 px-6 text-left">Voucher Name</th>
-                <th className="py-3 px-6 text-left">Note</th>
-                <th className="py-3 px-6 text-left">Total Price</th>
-                <th className="py-3 px-6 text-left">Action</th>
+              <tr>
+                {[
+                  "Order ID",
+                  "User Name",
+                  "Store Name",
+                  "Order Status",
+                  "Order Date",
+                  "Voucher Name",
+                  "Note",
+                  "Total Price",
+                  "Action",
+                ].map((heading, index) => (
+                  <th
+                    key={index}
+                    className="border border-gray-200 px-4 py-2 text-center text-gray-600 font-semibold"
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
               {filteredOrders.map((order) => (
                 <tr
                   key={order.orderId}
-                  className="border-b border-gray-200 hover:bg-gray-100"
+                  className="border-b border-gray-200 hover:bg-gray-100 transition-all"
                 >
-                  <td className="py-3 px-6 text-left">{order.orderId}</td>
-                  <td className="py-3 px-6 text-left">{order.user.displayName}</td>
-                  <td className="py-3 px-6 text-left">{order.store.storeName}</td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">{order.orderId}</td>
+                  <td className="border border-gray-200 px-4 py-2">{order.user.displayName}</td>
+                  <td className="border border-gray-200 px-4 py-2">{order.store.storeName}</td>
+                  <td className="border border-gray-200 px-4 py-2">
                     {order.orderStatus ? (
                       <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
                         Completed
@@ -364,32 +374,30 @@ const FoodOrdersComponent = () => {
                       </span>
                     )}
                   </td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">
                     {new Date(order.orderDate).toLocaleDateString("en-GB", {
                       year: "numeric",
                       month: "2-digit",
                       day: "2-digit",
                     })}
                   </td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">
                     {order.voucher?.voucherName ?? "No Voucher"}
                   </td>
-                  <td className="py-3 px-6 text-left">{order.note}</td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">{order.note}</td>
+                  <td className="border border-gray-200 px-4 py-2">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(order.totalPrice)}
                   </td>
-                  <td className="py-3 px-6 text-left">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => fetchOrderDetails(order.orderId)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded flex items-center hover:text-blue-700 transition duration-300"
-                      >
-                        <FaEye className="mr-1" /> View
-                      </button>
-                    </div>
+                  <td className="border border-gray-200 px-4 py-2 flex items-center space-x-2">
+                    <button
+                      onClick={() => fetchOrderDetails(order.orderId)}
+                      className="p-2 hover:bg-gray-200 rounded"
+                    >
+                      <EyeIcon className="h-5 w-5 text-gray-600" />
+                    </button>
                   </td>
                 </tr>
               ))}

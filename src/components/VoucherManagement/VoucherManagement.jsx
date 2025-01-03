@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaEye, FaTrash, FaUndoAlt, FaSearch } from "react-icons/fa";
+import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { FaEye, FaTrash, FaUndoAlt, FaSearch, FaPlus } from "react-icons/fa";
 import { AiOutlineUpload } from "react-icons/ai";
 import Modal from "react-modal";  // Import react-modal
 import './VoucherManagement.css'
@@ -74,7 +75,7 @@ const VoucherManagement = () => {
       setEndDate(newEndDate);
     }
   };
-  
+
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
     const today = new Date().toISOString().split("T")[0]; // Lấy ngày hôm nay
@@ -148,7 +149,7 @@ const VoucherManagement = () => {
       alert("Please select both start date and expired date.");
       return;
     }
-  
+
     try {
       const response = await axios.patch(`http://localhost:8000/api/voucher/${voucherId}/restore`, {
         expiredDate: endDate,
@@ -156,11 +157,11 @@ const VoucherManagement = () => {
       });
       if (response.status === 200) {
         alert("Voucher restored successfully!");
-       // Cập nhật lại danh sách voucher đã xóa
-       fetchDeletedVouchers();
-       // Thêm voucher đã khôi phục vào danh sách voucher
-       const restoredVoucher = response.data;
-       setVouchers((prevVouchers) => [...prevVouchers, restoredVoucher]);
+        // Cập nhật lại danh sách voucher đã xóa
+        fetchDeletedVouchers();
+        // Thêm voucher đã khôi phục vào danh sách voucher
+        const restoredVoucher = response.data;
+        setVouchers((prevVouchers) => [...prevVouchers, restoredVoucher]);
       }
     } catch (error) {
       console.error("Error restoring voucher:", error);
@@ -236,27 +237,26 @@ const VoucherManagement = () => {
     }
   };
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4 text-center">Voucher Management</h1>
-
-      <div className="flex items-center justify-between mb-4">
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
-          <AiOutlineUpload size={20} />
-          Thêm bằng Excel
+    <div className="p-6 text-center">
+      <h1 className="text-2xl font-bold mb-4">Voucher Management</h1>
+      <div className="flex justify-between mb-6">
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 flex items-center"
+        >
+          <FaPlus className="mr-2" /> Add Voucher
         </button>
         <button
           onClick={openModal}
-          className="bg-red-500 text-white px-3 py-2 rounded flex items-center hover:bg-red-600 transition duration-300"
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
         >
-          <FaTrash className="mr-2" />
-          {deletedVouchers.length} Deleted Vouchers
+          View Pre-actived Vouchers
         </button>
       </div>
 
       <div className="flex justify-between mb-6 space-x-4">
         <input
           type="text"
-          placeholder="Search by voucher code or name"
+          placeholder="Search by voucher name"
           className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={handleSearchChange}
@@ -275,182 +275,167 @@ const VoucherManagement = () => {
           <option value="40-50">40-50%</option>
         </select>
       </div>
-      {/* Active Vouchers Table */}
-      <div className="overflow-x-auto">
-        <h2 className="text-lg font-semibold mb-2">Active Vouchers</h2>
-        <table className="min-w-full table-auto bg-white shadow-md rounded-lg mb-6">
-          <thead>
-            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-              <th className="py-3 px-6 text-left">Voucher ID</th>
-              <th className="py-3 px-6 text-left">Voucher Name</th>
-              <th className="py-3 px-6 text-left">Discount (%)</th>
-              <th className="py-3 px-6 text-left">Store</th>
-              <th className="py-3 px-6 text-left">Expired Date</th>
-              <th className="py-3 px-6 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-600 text-sm font-light">
-            {vouchers.length > 0 ? (
-              vouchers.map((voucher) => (
-                <React.Fragment key={voucher.voucherId}>
-                  <tr className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
-                    <td className="py-3 px-6 text-left">
-                      {voucher.voucherName}
-                    </td>
-                    <td className="py-3 px-6 text-left">
-                      {voucher.voucherDiscount}%
-                    </td>
-                    <td className="py-3 px-6 text-left">
-                      {voucher.store?.storeName}
-                    </td>
-                    <td className="py-3 px-6 text-left">
-                      {new Date(voucher.expiredDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-6 flex space-x-2">
-                      <button
-                        onClick={() => toggleVoucherDetails(voucher.voucherId)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded flex items-center hover:text-blue-700 transition duration-300"
-                      >
-                        <FaEye className="mr-1" /> View
-                      </button>
-                      <button
-                        onClick={() => softDeleteVoucher(voucher.voucherId)}
-                        className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:bg-red-600"
-                      >
-                        <FaTrash className="mr-1" /> Delete
-                      </button>
-                    </td>
-                  </tr>
-                  {selectedVoucherId === voucher.voucherId && (
-                    <tr>
-                      <td colSpan="6">
-                        <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
-                          {loading ? (
-                            <div>Loading...</div>
-                          ) : (
-                            <div>
-                              <h3 className="font-semibold text-lg">
-                                Voucher Details
-                              </h3>
-                              <p>
-                                <strong>Voucher ID:</strong>{" "}
-                                {voucherDetails.voucherId}
-                              </p>
-                              <p>
-                                <strong>Voucher Name:</strong>{" "}
-                                {voucherDetails.voucherName}
-                              </p>
-                              <p>
-                                <strong>Discount Percentage:</strong>{" "}
-                                {voucherDetails.voucherDiscount}%
-                              </p>
-                              <p>
-                                <strong>Store:</strong>{" "}
-                                {voucherDetails.store?.storeName}
-                              </p>
-                              <p>
-                                <strong>Expired Date:</strong>{" "}
-                                {new Date(
-                                  voucherDetails.expiredDate
-                                ).toLocaleDateString()}
-                              </p>
-                              <p>
-                                <strong>Orders Applied:</strong>{" "}
-                                {voucherDetails.order?.length}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center py-3 px-6">
-                  No vouchers found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
 
-      {/* Modal for Deleted Vouchers */}
-      <Modal
-      isOpen={isModalOpen}
-      onRequestClose={closeModal}
-      contentLabel="Deleted Vouchers"
-      className="modal-content"
-      overlayClassName="modal-overlay"
-      ariaHideApp={false}
-    >
-      <div className="modal-header flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Deleted Vouchers</h2>
-        <button
-          onClick={closeModal}
-          className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition duration-300"
-        >
-          X
-        </button>
-      </div>
-      <div className="overflow-x-auto mt-4">
-        <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
-          <thead>
-            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-              <th className="py-3 px-6 text-left">Voucher ID</th>
-              <th className="py-3 px-6 text-left">Voucher Name</th>
-              <th className="py-3 px-6 text-left">Store</th>
-              <th className="py-3 px-6 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedVouchers.length > 0 ? (
-              deletedVouchers.map((voucher) => (
-                <tr key={voucher.voucherId} className="border-b border-gray-200">
-                  <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
-                  <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
-                  <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
-                  <td className="py-3 px-6 flex space-x-2">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={handleStartDateChange}
-                      placeholder="Start Date"
-                      className="border border-gray-300 p-2 rounded"
-                    />
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={handleRestoreExpiredDateChange}
-                      placeholder="Expired Date"
-                      className="border border-gray-300 p-2 rounded"
-                    />
+      
+
+      <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
+        <thead>
+          <tr>
+            {[
+              "ID",
+              "Voucher Name",
+              "Discount (%)",
+              "Store",
+              "Expired Date",
+              "Actions",
+            ].map((heading, index) => (
+              <th
+                key={index}
+                className="border border-gray-200 px-4 py-2 text-center text-gray-600 font-semibold"
+              >
+                {heading}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {vouchers.length > 0 ? (
+            vouchers.map((voucher) => (
+              <React.Fragment key={voucher.voucherId}>
+                <tr className="hover:bg-gray-100 transition-all">
+                  <td className="border border-gray-200 px-4 py-2">{voucher.voucherId}</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <p className="text-gray-900 font-medium">{voucher.voucherName}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2">{voucher.voucherDiscount}%</td>
+                  <td className="border border-gray-200 px-4 py-2">{voucher.store?.storeName}</td>
+                  <td className="border border-gray-200 px-4 py-2">{new Date(voucher.expiredDate).toLocaleDateString()}</td>
+                  <td className="border border-gray-200 px-4 py-2 flex items-center space-x-2">
                     <button
-                      onClick={() => restoreVoucher(voucher.voucherId)}
-                      className="bg-green-500 text-white px-2 py-1 rounded flex items-center hover:bg-green-600 transition duration-300"
+                      onClick={() => toggleVoucherDetails(voucher.voucherId)}
+                      className="p-2 hover:bg-gray-200 rounded"
                     >
-                      <FaUndoAlt className="mr-1" /> Restore
+                      <EyeIcon className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <button
+                      onClick={() => softDeleteVoucher(voucher.voucherId)}
+                      className="p-2 hover:bg-red-100 rounded"
+                    >
+                      <TrashIcon className="h-5 w-5 text-red-600" />
                     </button>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="text-center py-3 px-6">
-                  No deleted vouchers found.
-                </td>
+                {selectedVoucherId === voucher.voucherId && (
+                  <tr>
+                    <td colSpan="6">
+                      <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
+                        {loading ? (
+                          <div>Loading...</div>
+                        ) : (
+                          <div>
+                            <h3 className="font-semibold text-lg">Voucher Details</h3>
+                            <p><strong>Voucher ID:</strong> {voucherDetails.voucherId}</p>
+                            <p><strong>Voucher Name:</strong> {voucherDetails.voucherName}</p>
+                            <p><strong>Discount Percentage:</strong> {voucherDetails.voucherDiscount}%</p>
+                            <p><strong>Store:</strong> {voucherDetails.store?.storeName}</p>
+                            <p><strong>Expired Date:</strong> {new Date(voucherDetails.expiredDate).toLocaleDateString()}</p>
+                            <p><strong>Orders Applied:</strong> {voucherDetails.order?.length}</p>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))
+          ) : (
+            <tr>
+              <td
+                className="border border-gray-200 px-4 py-2 text-center"
+                colSpan="6"
+              >
+                No vouchers found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Deleted Vouchers"
+        className="modal-content"
+        overlayClassName="modal-overlay"
+        ariaHideApp={false}
+      >
+        <div className="modal-header flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Deleted Vouchers</h2>
+          <button
+            onClick={closeModal}
+            className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition duration-300"
+          >
+            X
+          </button>
+        </div>
+        <div className="overflow-x-auto mt-4">
+          <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
+            <thead>
+              <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
+                <th className="py-3 px-6 text-left">Voucher ID</th>
+                <th className="py-3 px-6 text-left">Voucher Name</th>
+                <th className="py-3 px-6 text-left">Store</th>
+                <th className="py-3 px-6 text-left">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </Modal>
+            </thead>
+            <tbody>
+              {deletedVouchers.length > 0 ? (
+                deletedVouchers.map((voucher) => (
+                  <tr key={voucher.voucherId} className="border-b border-gray-200">
+                    <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
+                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
+                    <td className="py-3 px-6 text-left">{voucher.store?.storeName}</td>
+                    <td className="py-3 px-6 flex space-x-2">
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={handleStartDateChange}
+                        placeholder="Start Date"
+                        className="border border-gray-300 p-2 rounded"
+                      />
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={handleRestoreExpiredDateChange}
+                        placeholder="Expired Date"
+                        className="border border-gray-300 p-2 rounded"
+                      />
+                      <button
+                        onClick={() => restoreVoucher(voucher.voucherId)}
+                        className="bg-green-500 text-white px-2 py-1 rounded flex items-center hover:bg-green-600 transition duration-300"
+                      >
+                        <FaUndoAlt className="mr-1" /> Restore
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-3 px-6">
+                    No deleted vouchers found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Modal>
     </div>
   );
-
 };
 
 export default VoucherManagement;

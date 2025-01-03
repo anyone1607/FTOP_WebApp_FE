@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
 
 const ProductComponent = () => {
@@ -177,10 +178,10 @@ const ProductComponent = () => {
       return;
     }
     const productPrice = parseFloat(formData.productPrice);
-  if (isNaN(productPrice)) {
-    alert("Product price must be a valid number.");
-    return;
-  }
+    if (isNaN(productPrice)) {
+      alert("Product price must be a valid number.");
+      return;
+    }
 
 
     try {
@@ -390,7 +391,7 @@ const ProductComponent = () => {
       <div className="mb-4 flex justify-between items-center">
         <button
           onClick={openAddModal}
-          className="flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded"
+          className="flex items-center bg-blue-500 text-white font-bold py-2 px-4 rounded"
         >
           <FaPlus className="mr-2" />
           Add Product
@@ -432,7 +433,7 @@ const ProductComponent = () => {
             </option>
           ))}
         </select> */}
-        {localStorage.getItem('role') !== 'store-owner' && (
+        {localStorage.getItem('role') !== 'owner' && (
           <select
             className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedStore}
@@ -454,37 +455,46 @@ const ProductComponent = () => {
         {products.length === 0 ? (
           <p>Loading products...</p>
         ) : (
-          <table className="min-w-full bg-white">
+          <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Product ID</th>
-                <th className="py-3 px-6 text-left">Product Name</th>
-                <th className="py-3 px-6 text-left">Product Price</th>
-                <th className="py-3 px-6 text-left">Category Name</th>
-                <th className="py-3 px-6 text-left">Status</th>
-                <th className="py-3 px-6 text-left">Product Image</th>
-                {localStorage.getItem('role') !== 'store-owner' && (
-                <th className="py-3 px-6 text-left">Store Name</th>
-              )}
-                <th className="py-3 px-6 text-left">Action</th>
+              <tr>
+                {[
+                  "Product ID",
+                  "Product Name",
+                  "Product Price",
+                  "Category Name",
+                  "Status",
+                  "Product Image",
+                  localStorage.getItem('role') !== 'owner' && "Store Name",
+                  "Action",
+                ].map((heading, index) => (
+                  heading && (
+                    <th
+                      key={index}
+                      className="border border-gray-200 px-4 py-2 text-center text-gray-600 font-semibold"
+                    >
+                      {heading}
+                    </th>
+                  )
+                ))}
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
               {currentItems.map((product) => (
                 <tr
                   key={product.productId}
-                  className="border-b border-gray-200 hover:bg-gray-100"
+                  className="border-b border-gray-200 hover:bg-gray-100 transition-all"
                 >
-                  <td className="py-3 px-6 text-left">{product.productId}</td>
-                  <td className="py-3 px-6 text-left">{product.productName}</td>
+                  <td className="border border-gray-200 px-4 py-2">{product.productId}</td>
+                  <td className="border border-gray-200 px-4 py-2">{product.productName}</td>
                   <td className="border border-gray-200 px-4 py-2">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(product.productPrice)}
                   </td>
-                  <td className="py-3 px-6 text-left">{product.categoryName}</td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">{product.categoryName}</td>
+                  <td className="border border-gray-200 px-4 py-2">
                     {product.status ? (
                       <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
                         Active
@@ -495,37 +505,35 @@ const ProductComponent = () => {
                       </span>
                     )}
                   </td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="border border-gray-200 px-4 py-2">
                     <img
                       src={`http://localhost:8000${product.productImage}`}
                       alt={product.productName}
-                      className="w-12 h-12 object-cover"
+                      className="w-24 h-24 object-cover rounded-lg"
                     />
                   </td>
-                  {localStorage.getItem('role') !== 'store-owner' && (
-                  <td className="py-3 px-6 text-left">{product.storeName}</td>
+                  {localStorage.getItem('role') !== 'owner' && (
+                    <td className="border border-gray-200 px-4 py-2">{product.storeName}</td>
                   )}
-                  <td className="py-3 px-6 text-left">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleView(product)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded flex items-center hover:text-blue-700 transition duration-300"
-                      >
-                        <FaEye className="mr-1" /> View
-                      </button>
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded flex items-center hover:text-yellow-700 transition duration-300"
-                      >
-                        <FaEdit className="mr-1" /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteConfirmation(product)}
-                        className="bg-red-500 text-white px-2 py-1 rounded flex items-center hover:text-red-700 transition duration-300"
-                      >
-                        <FaTrash className="mr-1" /> Delete
-                      </button>
-                    </div>
+                  <td className="border border-gray-200 px-4 py-2 ">
+                    <button
+                      onClick={() => handleView(product)}
+                      className="p-2 hover:bg-gray-200 rounded"
+                    >
+                      <EyeIcon className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="p-2 hover:bg-yellow-100 rounded"
+                    >
+                      <PencilSquareIcon className="h-5 w-5 text-yellow-600" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteConfirmation(product)}
+                      className="p-2 hover:bg-red-100 rounded"
+                    >
+                      <TrashIcon className="h-5 w-5 text-red-600" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -652,7 +660,7 @@ const ProductComponent = () => {
                 </select>
               </div> */}
               <div className="mb-4">
-                {localStorage.getItem('role') !== 'store-owner' && (
+                {localStorage.getItem('role') !== 'owner' && (
                   <>
                     <label className="block text-gray-700">Store Name</label>
                     <select
@@ -832,25 +840,25 @@ const ProductComponent = () => {
                 </select>
               </div> */}
               <div className="mb-4">
-              {localStorage.getItem('role') !== 'store-owner' && (
+                {localStorage.getItem('role') !== 'owner' && (
                   <>
-                <label className="block text-gray-700">Store Name</label>
-                <select
-                  name="storeId"
-                  value={formData.storeId}
-                  onChange={handleStoreChange}
-                  className="border px-4 py-2 w-full"
-                  required
-                  disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
-                >
-                  <option value="">Select a store</option>
-                  {stores.map((store) => (
-                    <option key={store.storeId} value={store.storeId}>
-                      {store.storeName}
-                    </option>
-                  ))}
-                </select>
-                </>
+                    <label className="block text-gray-700">Store Name</label>
+                    <select
+                      name="storeId"
+                      value={formData.storeId}
+                      onChange={handleStoreChange}
+                      className="border px-4 py-2 w-full"
+                      required
+                      disabled={localStorage.getItem('role') === 'store-owner'} // Disable if role is store-owner
+                    >
+                      <option value="">Select a store</option>
+                      {stores.map((store) => (
+                        <option key={store.storeId} value={store.storeId}>
+                          {store.storeName}
+                        </option>
+                      ))}
+                    </select>
+                  </>
                 )}
               </div>
               <div className="flex justify-end space-x-2">

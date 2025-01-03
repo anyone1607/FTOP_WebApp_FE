@@ -1,7 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import SidebarComponent from "../../components/SidebarComponent/SidebarComponent";
-
 const AdminPage = () => {
   return (
     <div className="flex h-screen overflow-hidden">

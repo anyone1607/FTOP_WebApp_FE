@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { FaTag, FaEdit, FaTrash } from "react-icons/fa";
 import './StoreManagement.css'
 const StoreManagement = () => {
@@ -28,11 +29,19 @@ const StoreManagement = () => {
   const [owners, setOwners] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [fileName, setFileName] = useState("");
+  const [selectedImageStoreId, setSelectedImageStoreId] = useState(null);
+  const [selectedVoucherStoreId, setSelectedVoucherStoreId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [storeStats, setStoreStats] = useState({ totalOrders: 0, totalRevenue: 0 });
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
 
   useEffect(() => {
     const fetchOwners = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/user/findUser");
+        const response = await axios.get("http://localhost:8000/api/user/owners-without-store");
         setOwners(response.data);
       } catch (error) {
         console.error("Error fetching owners:", error);
@@ -41,12 +50,19 @@ const StoreManagement = () => {
 
     fetchOwners();
   }, []);
-  const toggleImageDropdown = (storeId, event) => {
-    if (event) {
-      event.stopPropagation(); // Ngăn chặn sự kiện click lan truyền lên các phần tử cha
+
+  useEffect(() => {
+    if (selectedStoreId) {
+      fetchStoreStats(selectedStoreId, selectedMonth, selectedYear).then(stats => {
+        setStoreStats(stats);
+      });
     }
-    setSelectedStoreId(selectedStoreId === storeId ? null : storeId);
+  }, [selectedMonth, selectedYear, selectedStoreId]);
+  const toggleImageModal = (storeId) => {
+    setSelectedImageStoreId(storeId);
+    setIsImageModalOpen(true);
   };
+
 
   const setMainImage = async (storeId, imageIndex) => {
     const updatedStores = stores.map((store) => {
@@ -59,7 +75,7 @@ const StoreManagement = () => {
       return store;
     });
     setStores(updatedStores);
-    setSelectedStoreId(null);
+    setIsImageModalOpen(false);
 
     // Gửi yêu cầu cập nhật lên server
     const storeToUpdate = updatedStores.find(store => store.storeId === storeId);
@@ -72,12 +88,26 @@ const StoreManagement = () => {
       console.error('Error updating store image:', error);
     }
   };
-  const handleEditRemoveImage = (index) => {
-    setImagePreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
-    setEditStore((prevEditStore) => ({
-      ...prevEditStore,
-      storeImage: prevEditStore.storeImage.filter((_, i) => i !== index),
-    }));
+  // const handleEditRemoveImage = (index) => {
+  //   setImagePreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
+  //   setEditStore((prevEditStore) => ({
+  //     ...prevEditStore,
+  //     storeImage: prevEditStore.storeImage.filter((_, i) => i !== index),
+  //   }));
+  // };
+  const handleEditRemoveImage = (index, isNewImage) => {
+    if (isNewImage) {
+      setImagePreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
+      setEditStore((prevEditStore) => ({
+        ...prevEditStore,
+        newImages: prevEditStore.newImages.filter((_, i) => i !== index),
+      }));
+    } else {
+      setEditStore((prevEditStore) => ({
+        ...prevEditStore,
+        storeImage: prevEditStore.storeImage.filter((_, i) => i !== index),
+      }));
+    }
   };
 
 
@@ -116,6 +146,18 @@ const StoreManagement = () => {
   //   }
   // };
   const handleAddStore = async () => {
+    // Kiểm tra các trường bắt buộc
+  if (!newStore.storeName || !newStore.storeAddress || !newStore.storePhone || !newStore.ownerId) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  // Kiểm tra số điện thoại
+  const phoneRegex = /^[0-9]{10,11}$/;
+  if (!phoneRegex.test(newStore.storePhone)) {
+    alert("Please enter a valid phone number (10-11 digits).");
+    return;
+  }
     const formData = new FormData();
     formData.append("storeName", newStore.storeName);
     formData.append("storeAddress", newStore.storeAddress);
@@ -315,8 +357,29 @@ const StoreManagement = () => {
   };
 
   const toggleVoucherList = (storeId) => {
-    setSelectedStoreId(selectedStoreId === storeId ? null : storeId);
+    setSelectedVoucherStoreId(selectedVoucherStoreId === storeId ? null : storeId);
   };
+
+  const handleViewStore = async (storeId) => {
+    const stats = await fetchStoreStats(storeId, selectedMonth, selectedYear);
+    setStoreStats(stats);
+    setSelectedStoreId(storeId);
+    setIsModalOpen(true);
+  };
+
+  const fetchStoreStats = async (storeId, month, year) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/order/stats/${storeId}`, {
+        params: { month: month === "All" ? null : month, year }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching store stats:', error);
+      return { totalOrders: 0, totalRevenue: 0 };
+    }
+  };
+
+
 
   const itemsPerPage = 6;
 
@@ -358,6 +421,39 @@ const StoreManagement = () => {
   };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Component để hiển thị modal chọn ảnh
+  const ImageModal = ({ isOpen, images, onClose, onSelectImage }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
+        <div className="bg-white rounded-lg shadow-lg p-6 z-10 w-1/3">
+          <h2 className="text-xl font-semibold mb-4">Select Main Image</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {images.map((image, index) => (
+              <img
+                key={index}
+                src={`http://localhost:8000${image}`}
+                alt={`Store Image ${index}`}
+                className="w-full h-32 object-cover cursor-pointer"
+                onClick={() => onSelectImage(index)}
+              />
+            ))}
+          </div>
+          <button
+            onClick={onClose}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
 
   return (
     <div className="container mx-auto p-6">
@@ -505,7 +601,7 @@ const StoreManagement = () => {
                         />
                         <button
                           type="button"
-                          onClick={() => handleEditRemoveImage(index)}
+                          onClick={() => handleEditRemoveImage(index, false)}
                           className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
                         >
                           &times;
@@ -521,7 +617,7 @@ const StoreManagement = () => {
                         />
                         <button
                           type="button"
-                          onClick={() => handleEditRemoveImage(index)}
+                          onClick={() => handleEditRemoveImage(index, true)}
                           className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
                         >
                           &times;
@@ -707,33 +803,40 @@ const StoreManagement = () => {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
+        <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
           <thead>
-            <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-              <th className="py-3 px-6 text-left">Store ID</th>
-              <th className="py-3 px-6 text-left">Store Name</th>
-              <th className="py-3 px-6 text-left">Address</th>
-              <th className="py-3 px-6 text-left">Phone</th>
-              <th className="py-3 px-6 text-left">Owner Name</th>
-              <th className="py-3 px-6 text-left">Status</th>
-              <th className="py-3 px-6 text-left">Store Image</th>
-              <th className="py-3 px-6 text-left">Vouchers</th>
-              <th className="py-3 px-6 text-left">Action</th>
+            <tr>
+              {[
+                "Store ID",
+                "Store Name",
+                "Address",
+                "Phone",
+                "Owner Name",
+                "Status",
+                "Store Image",
+                "Vouchers",
+                "Actions",
+              ].map((heading, index) => (
+                <th
+                  key={index}
+                  className="border border-gray-200 px-4 py-2 text-center text-gray-600 font-semibold"
+                >
+                  {heading}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="text-gray-600 text-sm font-light">
+          <tbody>
             {stores?.length > 0 ? (
               currentItems.map((store) => (
                 <React.Fragment key={store.storeId}>
-                  <tr className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{store.storeId}</td>
-                    <td className="py-3 px-6 text-left">{store.storeName}</td>
-                    <td className="py-3 px-6 text-left">
-                      {store.storeAddress}
-                    </td>
-                    <td className="py-3 px-6 text-left">{store.storePhone}</td>
-                    <td className="py-3 px-6 text-left">{store.owner.displayName}</td>
-                    <td className="py-3 px-6 text-left">
+                  <tr className="hover:bg-gray-100 transition-all">
+                    <td className="border border-gray-200 px-4 py-2">{store.storeId}</td>
+                    <td className="border border-gray-200 px-4 py-2">{store.storeName}</td>
+                    <td className="border border-gray-200 px-4 py-2">{store.storeAddress}</td>
+                    <td className="border border-gray-200 px-4 py-2">{store.storePhone}</td>
+                    <td className="border border-gray-200 px-4 py-2">{store.owner.displayName}</td>
+                    <td className="border border-gray-200 px-4 py-2">
                       {store.status ? (
                         <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
                           Active
@@ -744,55 +847,22 @@ const StoreManagement = () => {
                         </span>
                       )}
                     </td>
-                    {/* <td className="py-3 px-6 text-left">
-                      {store.storeImage ? (
-                        <div className="flex flex-wrap">
-                          <img
-                            src={`http://localhost:8000${store.storeImage}`}
-                            alt="Store"
-                            className="w-20 h-20 object-cover mr-2 mb-2"
-                          />
-                        </div>
-                      ) : (
-                        <span>No image available</span>
-                      )}
-                    </td> */}
-                    <td className="py-3 px-6 text-left">
+                    <td className="border border-gray-200 px-4 py-2">
                       {store.storeImage && store.storeImage.length > 0 ? (
                         <div className="relative">
                           <img
                             src={`http://localhost:8000${store.storeImage[0]}`}
                             alt="Store"
                             className="w-32 h-32 object-cover cursor-pointer"
-                            onClick={(event) => toggleImageDropdown(store.storeId, event)}
+                            onClick={() => toggleImageModal(store.storeId)}
                           />
-                          {selectedStoreId === store.storeId && (
-                            <div className="absolute top-full left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                              {store.storeImage.map((image, index) => (
-                                <div
-                                  key={index}
-                                  className="p-2 cursor-pointer hover:bg-gray-100"
-                                  onClick={(event) => {
-                                    event.stopPropagation(); // Ngăn chặn sự kiện click lan truyền lên các phần tử cha
-                                    setMainImage(store.storeId, index);
-                                  }}
-                                >
-                                  <img
-                                    src={`http://localhost:8000${image}`}
-                                    alt={`Store Image ${index}`}
-                                    className="w-full h-32 object-cover rounded-lg" // Điều chỉnh kích thước ảnh trong dropdown list
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       ) : (
                         <span>No image available</span>
                       )}
                     </td>
                     <td
-                      className="py-3 px-6 text-left cursor-pointer flex items-center"
+                      className="border border-gray-200 px-4 py-2 "
                       onClick={(event) => {
                         event.stopPropagation(); // Ngăn chặn sự kiện click lan truyền lên các phần tử cha
                         toggleVoucherList(store.storeId);
@@ -810,47 +880,32 @@ const StoreManagement = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-6 text-left">
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={() => handleEditStore(store.storeId)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          <FaEdit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStore(store.storeId)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <FaTrash className="w-5 h-5" />
-                        </button>
-                      </div>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <button
+                        onClick={() => handleViewStore(store.storeId)}
+                        className="p-2 hover:bg-gray-200 rounded"
+                      >
+                        <EyeIcon className="h-5 w-5 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={() => handleEditStore(store.storeId)}
+                        className="p-2 hover:bg-gray-200 rounded"
+                      >
+                        <PencilSquareIcon className="h-5 w-5 text-gray-600" />
+                      </button>
                     </td>
                   </tr>
-                  {selectedStoreId === store.storeId && (
+                  {selectedVoucherStoreId === store.storeId && (
                     <tr>
-                      <td colSpan="7">
+                      <td colSpan="8">
                         <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
-                          {/* <ul>
-                            {store.vouchers.map((voucher) => (
-                              <li key={voucher.voucherId} className="mb-2">
-                                <span className="font-semibold">{voucher.voucherName}</span> - {voucher.voucherDiscount}
-                              </li>
-                            ))}
-                          </ul> */}
                           {store?.vouchers?.length > 0 ? (
                             <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
                               <thead>
                                 <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-                                  <th className="py-3 px-6 text-left">
-                                    Voucher ID
-                                  </th>
-                                  <th className="py-3 px-6 text-left">
-                                    Voucher Name
-                                  </th>
-                                  <th className="py-3 px-6 text-left">
-                                    Discount
-                                  </th>
+                                  <th className="py-3 px-6 text-left">Voucher ID</th>
+                                  <th className="py-3 px-6 text-left">Voucher Name</th>
+                                  <th className="py-3 px-6 text-left">Discount</th>
                                 </tr>
                               </thead>
                               <tbody className="text-gray-600 text-sm font-light">
@@ -859,23 +914,15 @@ const StoreManagement = () => {
                                     key={voucher.voucherId}
                                     className="border-b border-gray-200 hover:bg-gray-100"
                                   >
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherId}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherName}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherDiscount}%
-                                    </td>
+                                    <td className="py-3 px-6 text-left">{voucher.voucherId}</td>
+                                    <td className="py-3 px-6 text-left">{voucher.voucherName}</td>
+                                    <td className="py-3 px-6 text-left">{voucher.voucherDiscount}%</td>
                                   </tr>
                                 ))}
                               </tbody>
                             </table>
                           ) : (
-                            <p className="text-center py-3 px-6">
-                              No vouchers found.
-                            </p>
+                            <p className="text-center py-3 px-6">No vouchers found.</p>
                           )}
                         </div>
                       </td>
@@ -885,13 +932,83 @@ const StoreManagement = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-3 px-6">
+                <td
+                  className="border border-gray-200 px-4 py-2 text-center"
+                  colSpan="9"
+                >
                   No stores found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          images={stores.find(store => store.storeId === selectedImageStoreId)?.storeImage || []}
+          onClose={() => setIsImageModalOpen(false)}
+          onSelectImage={(index) => setMainImage(selectedImageStoreId, index)}
+        />
+
+        {/* Modal for Store Statistics */}
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <div className="bg-white rounded-lg shadow-lg p-6 z-10 w-1/3">
+              <h2 className="text-xl font-semibold mb-4">Store Statistics</h2>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="month">
+                  Month
+                </label>
+                <select
+                  id="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+                >
+
+                  {[...Array(12).keys()].map((month) => (
+                    <option key={month + 1} value={month + 1}>
+                      {month + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="year">
+                  Year
+                </label>
+                <select
+                  id="year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+                >
+                  {[...Array(6).keys()].map((year) => (
+                    <option key={year + 2020} value={year + 2020}>
+                      {year + 2020}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p><strong>Total Orders:</strong> {storeStats.totalOrders}</p>
+              <p><strong>Total Revenue:</strong> {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(storeStats.totalRevenue)}</p>
+              <p><strong>Admin Revenue (10%):</strong> {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(storeStats.totalRevenue * 0.1)}</p>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-center mt-4">
           <ul className="inline-flex items-center">
             {getPaginationGroup().map((page, index) => (
@@ -901,10 +1018,7 @@ const StoreManagement = () => {
                 ) : (
                   <button
                     onClick={() => paginate(page)}
-                    className={`px-4 py-2 border text-gray-600 ${currentPage === page
-                      ? "bg-blue-500 text-white"
-                      : "bg-white"
-                      }`}
+                    className={`px-4 py-2 border text-gray-600 ${currentPage === page ? "bg-blue-500 text-white" : "bg-white"}`}
                   >
                     {page}
                   </button>
