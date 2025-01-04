@@ -17,48 +17,6 @@ import { useLocation } from 'react-router-dom';
 Chart.register(...registerables);
 
 const WalletCardComponent = () => {
-  const barData = {
-    labels: ["2016", "2017", "2018", "2019", "2020", "2021", "2022"],
-    datasets: [
-      {
-        label: "USA",
-        data: [10, 30, 55, 60, 70, 85, 95],
-        backgroundColor: "#3b82f6",
-      },
-      {
-        label: "UK",
-        data: [8, 28, 48, 55, 65, 80, 85],
-        backgroundColor: "#60a5fa",
-      },
-      {
-        label: "AU",
-        data: [5, 20, 40, 50, 60, 70, 65],
-        backgroundColor: "#93c5fd",
-      },
-    ],
-  };
-
-  // Dữ liệu biểu đồ đường
-  const lineData = {
-    labels: ["2016", "2017", "2018", "2019", "2020", "2021", "2022"],
-    datasets: [
-      {
-        label: "Sales",
-        data: [20, 30, 45, 35, 50, 48, 60],
-        backgroundColor: "rgba(59, 130, 246, 0.5)",
-        borderColor: "#3b82f6",
-        fill: true,
-      },
-      {
-        label: "Revenue",
-        data: [100, 130, 170, 120, 180, 170, 260],
-        backgroundColor: "rgba(96, 165, 250, 0.5)",
-        borderColor: "#60a5fa",
-        fill: true,
-      },
-    ],
-  };
-
   const [searchTerm, setSearchTerm] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -111,6 +69,45 @@ const WalletCardComponent = () => {
   };
 
 
+  const [barData, setBarData] = useState({
+    labels: [],
+    datasets: [],
+  });
+
+  const [lineData, setLineData] = useState({ labels: [], datasets: [] });
+
+  useEffect(() => {
+    const colors = ["#3b82f6", "#60a5fa", "#93c5fd"];
+    fetch("http://localhost:8000/api/store")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data || data.length === 0) {
+          console.error("API trả về dữ liệu rỗng!");
+          return;
+        }
+
+        const labels = data[0]?.sales.labels || [];
+
+        const barDatasets = data.map((store, index) => ({
+          label: `${store.storeName} - Products Sold`,
+          data: store.sales.data || [],
+          backgroundColor: colors[index % colors.length],
+        }));
+
+        const lineDatasets = data.map((store, index) => ({
+          label: `${store.storeName} - Revenue`,
+          data: store.sales.data1 || [],
+          borderColor: colors[index % colors.length],
+          backgroundColor: "transparent",
+          tension: 0.4,
+        }));
+
+        setBarData({ labels, datasets: barDatasets });
+        setLineData({ labels, datasets: lineDatasets });
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
   const fetchTotalData = async () => {
     try {
       console.log("Fetching total data for user ID:", userId); // Log user ID before
@@ -155,6 +152,7 @@ const WalletCardComponent = () => {
         `http://localhost:8000/api/transaction/searchAll/${userId}`  
       );
       setTransactions(response.data);
+      console.log("data: " + response.data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
@@ -281,18 +279,16 @@ const WalletCardComponent = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 shadow rounded-lg">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold">Worldwide Sales</h3>
-            <span className="text-blue-500 cursor-pointer">Show All</span>
+            <h3 className="font-semibold">Product Sales</h3>
           </div>
           <Bar data={barData} />
         </div>
 
         <div className="bg-white p-4 shadow rounded-lg">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold">Sales & Revenue</h3>
-            <span className="text-blue-500 cursor-pointer">Show All</span>
+            <h3 className="font-semibold mb-4">Sales & Revenue</h3>
           </div>
-          <Line data={lineData} />
+          <Line data={lineData} options={{ responsive: true }} />
         </div>
       </div>
 
@@ -337,9 +333,6 @@ const WalletCardComponent = () => {
                   <th className="py-3 px-4 text-left font-semibold">
                     Trạng thái
                   </th>
-                  <th className="py-3 px-4 text-left font-semibold">
-                    Đơn hàng
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -379,11 +372,6 @@ const WalletCardComponent = () => {
                     </td>
                     <td className="py-3 px-4 border-b">
                       {transaction.status ? "Hoàn thành" : "Chưa hoàn thành"}
-                    </td>
-                    <td className="py-3 px-4 border-b">
-                      {transaction.order
-                        ? transaction.order.orderId
-                        : "Không có"}
                     </td>
                   </tr>
                 ))}

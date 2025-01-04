@@ -101,6 +101,12 @@ const AccountManagement = () => {
 
   
 
+  useEffect(() => {
+    searchUsers();
+  }, [searchQuery, selectedRole]);
+
+  
+
   const itemsPerPage = 10;
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -278,7 +284,7 @@ const AccountManagement = () => {
                   <div className="flex items-center space-x-4">
                     <img
                       src={user.avatar}
-                      alt="Null"
+                      alt=""
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div>
@@ -299,10 +305,10 @@ const AccountManagement = () => {
                         user.role === "manager" ||
                         user.role === "staff"
                         ? "bg-purple-100 text-purple-600"
-                        : user.role === "owner" || user.role === "customer"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-orange-100 text-orange-600"
-                      }`}
+                        : user.role === "owner" || user.role === "student"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-orange-100 text-orange-600"
+                    }`}
                   >
                     {user.role}
                   </span>
@@ -381,85 +387,6 @@ const AccountManagement = () => {
           ))}
         </ul>
       </div>
-
-      {/* Popup Modal */}
-      {/* {showPopup && selectedUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
-            <h2 className="text-xl font-bold mb-4">
-              Bank Transfers for {selectedUser.displayName}
-            </h2>
-            {bankTransfers.length > 0 ? (
-              <table className="min-w-full table-auto border-collapse border border-gray-200">
-                <thead>
-                  <tr>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Account Number
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Bank Name
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Transfer Amount
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">
-                      Transfer Date
-                    </th>
-                    <th className="border border-gray-200 px-4 py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bankTransfers.map((transfer) => (
-                    <tr key={transfer.transferId}>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.accountNumber}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.bankName}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.transferAmount
-                          ? `$ ${parseFloat(transfer.transferAmount).toFixed(
-                              2
-                            )}`
-                          : ""}
-                      </td>
-                      <td className="border border-gray-200 px-4 py-2">
-                        {transfer.transferDate
-                          ? new Date(transfer.transferDate).toLocaleDateString()
-                          : ""}
-                      </td>
-                      <td
-                        className={`border border-gray-200 px-4 py-2 ${
-                          transfer.status === true
-                            ? "text-green-600"
-                            : transfer.status === false
-                            ? "text-red-600"
-                            : ""
-                        }`}
-                      >
-                        {transfer.status === true
-                          ? "Completed"
-                          : transfer.status === false
-                          ? "Pending"
-                          : ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>No bank transfers found for this user.</p>
-            )}
-            <button
-              className="bg-red-500 text-white px-4 py-2 rounded mt-4"
-              onClick={handleClosePopup}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )} */}
 
       {showPopup && selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">

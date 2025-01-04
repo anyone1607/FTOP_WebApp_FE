@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaArrowRight } from "react-icons/fa";
 import axios from "axios";
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate("/about");
+  };
   const featuresLeft = [
     {
       icon: "📊",
@@ -92,15 +99,21 @@ const HomePage = () => {
             </button>
 
             {/* Đối tác */}
-            <button className="group relative cursor-pointer hover:text-blue-500 transition duration-300">
+            <button
+              onClick={handleNavigate}
+              className="group relative cursor-pointer hover:text-blue-500 transition duration-300"
+            >
               About
             </button>
 
             {/* Đăng nhập/Đăng ký */}
-            <button onClick={() => {
-            window.location.href =
-              "http://localhost:8000/api/auth/google/login";
-          }} className="group relative px-4 py-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition duration-300">
+            <button
+              className="group relative px-4 py-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition duration-300"
+              onClick={() =>
+                (window.location.href =
+                  "http://localhost:8000/api/auth/google/login")
+              }
+            >
               Sign In / Sign Up
             </button>
           </nav>
@@ -124,8 +137,7 @@ const HomePage = () => {
             <h1 className="text-5xl font-bold text-gray-800 leading-tight">
               FTOP nay là <br />
               <span className="text-blue-500">Trợ thủ tài chính</span>
-              <br /> với{" "}
-              <span className="text-blue-500">cho các bet thủ ✨</span>
+              <br /> với <span className="text-blue-500">cho sinh viên✨</span>
             </h1>
             <div className="relative group inline-block">
               <button
@@ -204,9 +216,15 @@ const HomePage = () => {
                 <p className="text-gray-600 text-sm mb-4">
                   {store.storeAddress}
                 </p>
-                <span className="text-blue-500 font-semibold text-sm">
+                <span className="text-gray-600 font-semibold text-sm">
                   Điện thoại: {store.storePhone}
                 </span>
+                <p className="text-gray-600 text-sm mb-4 hover:text-blue-600 hover:underline flex items-center">
+                  <Link to={`/store/${store.storeId}`}>
+                    <span>Xem chi tiết </span>
+                    <FaArrowRight className="inline-block" />
+                  </Link>
+                </p>
               </div>
             </div>
           ))}

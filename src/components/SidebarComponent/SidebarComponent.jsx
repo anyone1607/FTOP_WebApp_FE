@@ -11,6 +11,8 @@ import {
 import { FaHistory } from "react-icons/fa";
 import { GiTakeMyMoney, GiWallet } from "react-icons/gi";
 import { VscTag } from "react-icons/vsc";
+import { FiArrowUpCircle } from "react-icons/fi";
+import { GrTransaction } from "react-icons/gr";
 const SidebarComponent = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -42,6 +44,76 @@ const SidebarComponent = () => {
     localStorage.removeItem('name');
     window.location.href = 'http://localhost:3000/home';
   };
+
+  const menuItems = [
+    {
+      path: "/auth/system/e-wallet",
+      label: "E-Wallet",
+      icon: <GiWallet />,
+      roles: ["admin", "manager", "staff", "owner"]
+    },
+    {
+      path: "/auth/system/account/admin",
+      label: "Account Management",
+      icon: <MdSupervisorAccount />,
+      roles: ["admin"]
+    },
+    {
+      path: "/auth/system/product/owner",
+      label: "Product Management",
+      icon: <MdProductionQuantityLimits />,
+      roles: ["admin", "manager", "owner"]
+    },
+    {
+      path: "/auth/system/voucher/admin",
+      label: "Voucher Management",
+      icon: <VscTag />,
+      roles: ["admin", "manager", "owner"]
+    },
+    {
+      path: "/auth/system/statistic",
+      label: "Statistics",
+      icon: <MdBarChart />,
+      roles: ["manager", "owner"]
+    },
+    {
+      path: "/auth/system/order",
+      label: "Order Management",
+      icon: <MdOutlineAssignment />,
+      roles: ["admin", "manager", "owner"]
+    },
+    {
+      path: "/auth/system/store/manage",
+      label: "Store Management",
+      icon: <MdStorefront />,
+      roles: ["admin", "manager"]
+    },
+    {
+      path: "/auth/system/withdraw",
+      label: "Withdraw Money",
+      icon: <GiTakeMyMoney />,
+      roles: ["owner"]
+    },
+    {
+      path: "/auth/system/bank-transfer", // Xem lịch sử nạp rút
+      label: "BankTransfer History",
+      icon: <GrTransaction />,
+      roles: ["admin", "staff","owner"]
+    },
+    {
+      path: "/auth/system/request",
+      label: "Request",
+      icon: <FiArrowUpCircle />,
+      roles: ["admin", "owner","staff"]
+    },
+    {
+      path: "/auth/system/transaction",
+      label: "Transaction History",
+      icon: <FaHistory />,
+      roles: ["owner"]
+    },
+    { path: "#", label: "Logout", icon: <MdLogout />, roles: ["admin", "manager", "staff", "owner"],onClick: handleLogout }
+  ];
 
   return (
     <div className="w-64 h-screen bg-white border-r border-gray-200 shadow-lg flex flex-col">
@@ -193,178 +265,49 @@ const SidebarComponent = () => {
       {/* </li> */}
       <div className="flex-grow p-4">
         <ul className="space-y-2">
-          <li>
-            <Link
-              to="/auth/system/e-wallet"
-              className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/e-wallet")
-                  ? "bg-blue-100 text-blue-600 shadow-md"
-                  : "hover:bg-gray-100 hover:text-blue-600"
-                }`}
-            >
-              <div
-                className={`text-2xl ${isActive("/auth/system/e-wallet") ? "text-blue-600" : "text-gray-500"
-                  }`}
-              >
-                <GiWallet />
-              </div>
-              <span>E-Wallet</span>
-            </Link>
-          </li>
-
-          {userInfo.role === 'admin' && (
-            <li>
-              <Link
-                to="/auth/system/account/admin"
-                className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/account/admin")
-                    ? "bg-blue-100 text-blue-600 shadow-md"
-                    : "hover:bg-gray-100 hover:text-blue-600"
-                  }`}
-              >
-                <div
-                  className={`text-2xl ${isActive("/auth/system/account/admin") ? "text-blue-600" : "text-gray-500"
-                    }`}
-                >
-                  <MdSupervisorAccount />
-                </div>
-                <span>Account Management</span>
-              </Link>
-            </li>
-          )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'manager' || userInfo.role === 'owner') && (
-            <>
-              <li>
-                <Link
-                  to="/auth/system/voucher/admin"
-                  className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/voucher/admin")
-                      ? "bg-blue-100 text-blue-600 shadow-md"
-                      : "hover:bg-gray-100 hover:text-blue-600"
-                    }`}
-                >
+          {menuItems
+            .filter(item => item.roles.includes(userInfo.role))
+            .map((item, index) => (
+              <li key={index}>
+                {item.path === "#" ? (
                   <div
-                    className={`text-2xl ${isActive("/auth/system/voucher/admin") ? "text-blue-600" : "text-gray-500"
-                      }`}
-                  >
-                    <VscTag />
-                  </div>
-                  <span>Voucher Management</span>
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/auth/system/store/manage"
-                  className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/store/manage")
-                      ? "bg-blue-100 text-blue-600 shadow-md"
-                      : "hover:bg-gray-100 hover:text-blue-600"
+                    onClick={item.onClick}
+                    className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 cursor-pointer ${
+                      isActive(item.path)
+                        ? "bg-blue-100 text-blue-600 shadow-md"
+                        : "hover:bg-gray-100 hover:text-blue-600"
                     }`}
-                >
-                  <div
-                    className={`text-2xl ${isActive("/auth/system/store/manage") ? "text-blue-600" : "text-gray-500"
-                      }`}
                   >
-                    <MdStorefront />
-                  </div>
-                  <span>Store Management</span>
-                </Link>
-              </li>
-            </>
-          )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'manager' || userInfo.role === 'owner') && (
-            <>
-              <li>
-                <Link
-                  to="/auth/system/product/owner"
-                  className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/product/owner")
-                      ? "bg-blue-100 text-blue-600 shadow-md"
-                      : "hover:bg-gray-100 hover:text-blue-600"
-                    }`}
-                >
-                  <div
-                    className={`text-2xl ${isActive("/auth/system/product/owner") ? "text-blue-600" : "text-gray-500"
+                    <div
+                      className={`text-2xl ${
+                        isActive(item.path) ? "text-blue-600" : "text-gray-500"
                       }`}
-                  >
-                    <MdProductionQuantityLimits />
+                    >
+                      {item.icon}
+                    </div>
+                    <span>{item.label}</span>
                   </div>
-                  <span>Product Management</span>
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/auth/system/statistic"
-                  className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/statistic")
-                      ? "bg-blue-100 text-blue-600 shadow-md"
-                      : "hover:bg-gray-100 hover:text-blue-600"
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${
+                      isActive(item.path)
+                        ? "bg-blue-100 text-blue-600 shadow-md"
+                        : "hover:bg-gray-100 hover:text-blue-600"
                     }`}
-                >
-                  <div
-                    className={`text-2xl ${isActive("/auth/system/statistic") ? "text-blue-600" : "text-gray-500"
+                  >
+                    <div
+                      className={`text-2xl ${
+                        isActive(item.path) ? "text-blue-600" : "text-gray-500"
                       }`}
-                  >
-                    <MdBarChart />
-                  </div>
-                  <span>Statistics</span>
-                </Link>
+                    >
+                      {item.icon}
+                    </div>
+                    <span>{item.label}</span>
+                  </Link>
+                )}
               </li>
-
-              <li>
-                <Link
-                  to="/auth/system/order"
-                  className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/order")
-                      ? "bg-blue-100 text-blue-600 shadow-md"
-                      : "hover:bg-gray-100 hover:text-blue-600"
-                    }`}
-                >
-                  <div
-                    className={`text-2xl ${isActive("/auth/system/order") ? "text-blue-600" : "text-gray-500"
-                      }`}
-                  >
-                    <MdOutlineAssignment />
-                  </div>
-                  <span>Order Management</span>
-                </Link>
-              </li>
-            </>
-          )}
-
-          {(userInfo.role === 'admin' || userInfo.role === 'staff' || userInfo.role === 'owner') && (
-            <li>
-              <Link
-                to="/auth/system/withdraw"
-                className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 ${isActive("/auth/system/withdraw")
-                    ? "bg-blue-100 text-blue-600 shadow-md"
-                    : "hover:bg-gray-100 hover:text-blue-600"
-                  }`}
-              >
-                <div
-                  className={`text-2xl ${isActive("/auth/system/withdraw") ? "text-blue-600" : "text-gray-500"
-                    }`}
-                >
-                  <GiTakeMyMoney />
-                </div>
-                <span>Withdraw Money</span>
-              </Link>
-            </li>
-          )}
-
-          <li onClick={handleLogout}>
-            <div
-              className={`flex items-center space-x-3 p-3 rounded-lg text-gray-700 font-medium transition-all duration-300 cursor-pointer ${isActive("#")
-                  ? "bg-blue-100 text-blue-600 shadow-md"
-                  : "hover:bg-gray-100 hover:text-blue-600"
-                }`}
-            >
-              <div
-                className={`text-2xl ${isActive("#") ? "text-blue-600" : "text-gray-500"
-                  }`}
-              >
-                <MdLogout />
-              </div>
-              <span>Logout</span>
-            </div>
-          </li>
+            ))}
         </ul>
       </div>
       <div className="p-4 text-center text-gray-500 text-sm border-t border-gray-200">

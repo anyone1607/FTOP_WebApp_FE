@@ -1,8 +1,11 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 const WithdrawMoneyDetail = () => {
+  const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState("");
   const [inputAmount, setInputAmount] = useState("");
+  const [banks, setBanks] = useState([]);
+  const [selectedBank, setSelectedBank] = useState(null);
   const predefinedAmounts = [
     { label: "+100.000 VND", value: 100000 },
     { label: "+500.000 VND", value: 500000 },
@@ -97,18 +100,88 @@ const WithdrawMoneyDetail = () => {
     setSelectedAmount("");
   };
 
+  const handleBack = () => {
+    navigate("/auth/system/withdraw");
+  };
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await fetch("https://api.vietqr.io/v2/banks");
+        const data = await response.json();
+        if (data.code === "00" && Array.isArray(data.data)) {
+          setBanks(data.data);
+        } else {
+          console.error("Unexpected API response:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching banks:", error);
+      }
+    };
+
+    fetchBanks();
+  }, []);
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
+      <button
+        onClick={handleBack}
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-white hover:text-blue-500 transition duration-200"
+      >
+        ← Quay lại
+      </button>
       <div className="mb-6">
         <label className="block text-gray-700 font-semibold mb-2">
-          Chọn kênh thanh toán
+          Chọn ngân hàng thanh toán
         </label>
-        <select
-          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          defaultValue="BANKQR1"
-        >
-          <option value="BANKQR1">ZALOPAY - Tên cửa hàng</option>
-        </select>
+        <div className="relative">
+          <button
+            className="w-full p-3 border rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={() => {
+              document
+                .getElementById("dropdown-banks")
+                .classList.toggle("hidden");
+            }}
+          >
+            {selectedBank ? (
+              <div className="flex items-center">
+                <img
+                  src={selectedBank.logo}
+                  alt={selectedBank.short_name}
+                  className="w-25 h-8 mr-2 rounded-md object-contain"
+                />
+                {selectedBank.name}
+              </div>
+            ) : (
+              "Chọn ngân hàng"
+            )}
+          </button>
+
+          <div
+            id="dropdown-banks"
+            className="absolute z-10 w-full bg-white border rounded-lg mt-1 hidden"
+          >
+            {banks.map((bank) => (
+              <div
+                key={bank.id}
+                className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  setSelectedBank(bank);
+                  document
+                    .getElementById("dropdown-banks")
+                    .classList.add("hidden");
+                }}
+              >
+                <img
+                  src={bank.logo}
+                  alt={bank.short_name}
+                  className="w-25 h-8 mr-2 rounded-md object-contain"
+                />
+                {bank.name}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -124,7 +197,6 @@ const WithdrawMoneyDetail = () => {
         <p className="text-sm text-gray-500 mt-2">
           {inputAmount ? numberToWords(inputAmount) : ""}
         </p>
-
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -144,7 +216,7 @@ const WithdrawMoneyDetail = () => {
       </div>
 
       <div className="text-gray-600 text-sm mb-4">
-        <p>• Số tiền nạp tối thiểu là 50,000, tối đa là 300,000,000</p>
+        <p>• Số tiền rút tối thiểu là 50,000, tối đa là 300,000,000</p>
       </div>
 
       <button
