@@ -26,6 +26,7 @@ const WalletCardComponent = () => {
   const [transactions, setTransactions] = useState([]);
   const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState({});
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
   const location = useLocation();
 
   useEffect(() => {
@@ -40,6 +41,7 @@ const WalletCardComponent = () => {
       localStorage.setItem('email', email);
       localStorage.setItem('role', role);
       localStorage.setItem('name', name);
+      setUserRole(role); // Set the user role state
     }
   }, [location]);
 
@@ -81,19 +83,24 @@ const WalletCardComponent = () => {
     fetch("http://localhost:8000/api/store")
       .then((response) => response.json())
       .then((data) => {
+        console.log("API Response:", data);
+  
         if (!data || data.length === 0) {
           console.error("API trả về dữ liệu rỗng!");
           return;
         }
-
-        const labels = data[0]?.sales.labels || [];
-
+  
+        const labels = data[0]?.sales?.labels?.map(label => `${label.month} ${label.year}`) || [];
+        if (labels.length === 0) {
+          console.warn("Không có dữ liệu labels!");
+        }
+  
         const barDatasets = data.map((store, index) => ({
           label: `${store.storeName} - Products Sold`,
           data: store.sales.data || [],
           backgroundColor: colors[index % colors.length],
         }));
-
+  
         const lineDatasets = data.map((store, index) => ({
           label: `${store.storeName} - Revenue`,
           data: store.sales.data1 || [],
@@ -101,12 +108,13 @@ const WalletCardComponent = () => {
           backgroundColor: "transparent",
           tension: 0.4,
         }));
-
+  
         setBarData({ labels, datasets: barDatasets });
         setLineData({ labels, datasets: lineDatasets });
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+  
 
   const fetchTotalData = async () => {
     try {
@@ -276,6 +284,7 @@ const WalletCardComponent = () => {
       </div>
 
       {/* Biểu đồ */}
+      {userRole === 'admin' && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 shadow rounded-lg">
           <div className="flex justify-between items-center mb-4">
@@ -291,6 +300,8 @@ const WalletCardComponent = () => {
           <Line data={lineData} options={{ responsive: true }} />
         </div>
       </div>
+    )}
+  
 
       <div className="bg-white shadow-md rounded-lg p-4 mt-6">
         <div className="flex justify-between items-center mb-4">

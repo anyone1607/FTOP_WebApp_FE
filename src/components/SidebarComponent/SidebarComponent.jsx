@@ -101,7 +101,7 @@ const SidebarComponent = () => {
       roles: ["admin", "staff","owner"]
     },
     {
-      path: "/auth/system/request",
+      path: "/auth/system/confirm",
       label: "Request",
       icon: <FiArrowUpCircle />,
       roles: ["admin", "owner","staff"]

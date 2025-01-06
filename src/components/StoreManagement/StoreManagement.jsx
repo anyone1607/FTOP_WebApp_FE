@@ -3,6 +3,7 @@ import axios from "axios";
 import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { FaTag, FaEdit, FaTrash } from "react-icons/fa";
 import './StoreManagement.css'
+import { useLocation } from 'react-router-dom';
 const StoreManagement = () => {
   const [stores, setStores] = useState([]);
   const [selectedStoreId, setSelectedStoreId] = useState(null);
@@ -36,6 +37,25 @@ const StoreManagement = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      setUserRole(role); // Set the user role state
+    }
+  }, [location]);
+
 
 
   useEffect(() => {
@@ -459,12 +479,14 @@ const StoreManagement = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4 text-center">Store Management</h1>
       <div className="flex items-center mb-4">
+      {userRole === 'manager' && (
         <button
           onClick={() => setIsAdding(true)}
           className="bg-blue-500 text-white py-2 px-4 rounded"
         >
           Add New Store
         </button>
+      )}
         {/* Modal pop-up for updating store */}
         {isEditing && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

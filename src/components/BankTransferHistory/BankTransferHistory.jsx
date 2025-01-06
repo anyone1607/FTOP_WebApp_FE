@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { MdError } from "react-icons/md";
 import axios from "axios";
-const Request = () => {
+const BankTransferHistory = () => {
   const [banktransfer, setBankTransfers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const fetchBanktransfer = async () => {
@@ -146,12 +146,12 @@ const Request = () => {
                 <td className="border border-gray-200 px-4 py-2">
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
-                      bank.status
+                      bank.transferType
                         ? "bg-green-100 text-green-600"
                         : "bg-blue-100 text-blue-600"
                     }`}
                   >
-                    {bank.status ? "topup" : "withdraw"}
+                    {bank.transferType ? "topup" : "withdraw"}
                   </span>
                 </td>
 
@@ -240,4 +240,4 @@ const Request = () => {
   );
 };
 
-export default Request;
+export default BankTransferHistory;
