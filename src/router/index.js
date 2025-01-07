@@ -15,78 +15,83 @@ import StoreDetail from "../components/StoreDetail/StoreDetail";
 import About from "../pages/About/ProfileCard";
 import BankTranfer from "../components/BankTransferHistory/BankTransferHistory";
 import Confirm from "../components/ConfirmRequestWithdraw/ConfirmRequestWithdraw";
-import Test from "../pages/Test";
+import Test from "../components/Test";
+import ProjectsListPage from "../components/ProjectsListPage";
 export const routes = [
-    {
-        path: 'home',
-        page: HomePage,
-    },
-    {
-        path: 'test',
-        page: Test,
-    },
-    {
-        path: 'dashboard',
-        page: AdminPage,
-    },
-    {
-        path: 'e-wallet',
-        page: WalletCardComponent,
-    },
-    {
-        path: 'account/admin',
-        page: AccountManagement,
-    },
-    {
-        path: 'voucher/admin',
-        page: VoucherManagement,
-    },
-    {
-        path: 'product/owner',
-        page: ProductComponent,
-    },
-    {
-        path: 'order',
-        page: FoodOrdersComponent,
-    },
-    {
-        path: 'store/manage',
-        page: StoreManagement,
-    },
-    {
-        path: 'statistic',
-        page: Statistics,
-    },
-    {
-        path: 'withdraw',
-        page: Withdraw,
-    },
-    {
-        path: 'withdraw/detail',
-        page: WithdrawDetail,
-    },
-    {
-        path: 'transaction',
-        page: Transaction,
-    },
-    {
-        path: 'store/:storeId',
-        page: StoreDetail,
-    },
-    {
-        path: 'about',
-        page: About,
-    },
-    {
-        path: 'bank-transfer',
-        page: BankTranfer,
-    },
-    {
-        path: 'confirm',
-        page: Confirm,
-    },
-    {
-        path: '*',
-        page: NotFoundPage,
-    },
+  {
+    path: "home",
+    page: HomePage,
+  },
+  {
+    path: "test",
+    page: Test,
+  },
+  {
+    path: "projects",
+    page: ProjectsListPage,
+  },
+  {
+    path: "dashboard",
+    page: AdminPage,
+  },
+  {
+    path: "e-wallet",
+    page: WalletCardComponent,
+  },
+  {
+    path: "account/admin",
+    page: AccountManagement,
+  },
+  {
+    path: "voucher/admin",
+    page: VoucherManagement,
+  },
+  {
+    path: "product/owner",
+    page: ProductComponent,
+  },
+  {
+    path: "order",
+    page: FoodOrdersComponent,
+  },
+  {
+    path: "store/manage",
+    page: StoreManagement,
+  },
+  {
+    path: "statistic",
+    page: Statistics,
+  },
+  {
+    path: "withdraw",
+    page: Withdraw,
+  },
+  {
+    path: "withdraw/detail",
+    page: WithdrawDetail,
+  },
+  {
+    path: "transaction",
+    page: Transaction,
+  },
+  {
+    path: "store/:storeId",
+    page: StoreDetail,
+  },
+  {
+    path: "about",
+    page: About,
+  },
+  {
+    path: "bank-transfer",
+    page: BankTranfer,
+  },
+  {
+    path: "confirm",
+    page: Confirm,
+  },
+  {
+    path: "*",
+    page: NotFoundPage,
+  },
 ];

@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaTag } from "react-icons/fa";
+import { FaMoneyBillWave } from "react-icons/fa";
+import { toast } from "react-toastify";
 const StoreManagement = () => {
   const [stores, setStores] = useState([]);
   const [selectedStoreId, setSelectedStoreId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [newStore, setNewStore] = useState({
     storeName: "",
@@ -15,10 +18,23 @@ const StoreManagement = () => {
   });
   const [isAdding, setIsAdding] = useState(false);
 
+  // ===== (A) Popup Stats =====
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [storeStats, setStoreStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalDiscount: 0,
+  });
+
+  // ===== (B) Popup Vouchers =====
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  // Nếu bạn cần ID store để lấy voucher, có thể thêm state hoặc truyền param:
+  const [voucherStoreId, setVoucherStoreId] = useState(null);
+
+  // 1) Lấy danh sách Store
   const fetchStoresData = async () => {
     try {
       const storeResponse = await axios.get("http://localhost:8000/api/store");
-      console.log(storeResponse.data);
       setStores(storeResponse.data?.stores || storeResponse.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -35,8 +51,7 @@ const StoreManagement = () => {
         "http://localhost:8000/api/store",
         newStore
       );
-      console.log("Store added:", response.data);
-      setStores([...stores, response.data]); // Cập nhật danh sách
+      setStores([...stores, response.data]);
       setNewStore({
         storeName: "",
         storeAddress: "",
@@ -50,17 +65,101 @@ const StoreManagement = () => {
     }
   };
 
-  const toggleVoucherList = (storeId) => {
-    setSelectedStoreId(selectedStoreId === storeId ? null : storeId);
+  // ===== (A) Hàm mở popup Stats =====
+  const handleShowStoreStats = async (storeId) => {
+    setSelectedStoreId(storeId);
+    setIsModalOpen(true);
+    const stats = await fetchStoreStats(storeId, selectedMonth, selectedYear);
+    setStoreStats(stats);
   };
 
-  const itemsPerPage = 9;
+  const fetchStoreStats = async (storeId, month, year) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/order/stats/${storeId}`,
+        {
+          params: {
+            month: month === "All" ? null : month,
+            year,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching store stats:", error);
+      return { totalOrders: 0, totalRevenue: 0, totalDiscount: 0 };
+    }
+  };
 
+  // Mỗi khi tháng/năm hoặc store thay đổi (và popup Stats đang mở), refetch
+  useEffect(() => {
+    if (!isModalOpen || !selectedStoreId) return;
+
+    const refetchStats = async () => {
+      const stats = await fetchStoreStats(
+        selectedStoreId,
+        selectedMonth,
+        selectedYear
+      );
+      setStoreStats(stats);
+    };
+    refetchStats();
+  }, [selectedMonth, selectedYear, selectedStoreId, isModalOpen]);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setStoreStats({
+      totalOrders: 0,
+      totalRevenue: 0,
+      totalDiscount: 0,
+    });
+    setSelectedMonth(new Date().getMonth() + 1);
+    setSelectedYear(new Date().getFullYear());
+  };
+
+  // ===== (B) Popup Vouchers =====
+  const handleOpenVouchers = (storeId) => {
+    // Nếu bạn cần gọi API lấy vouchers theo storeId, đặt hàm async ở đây
+    setVoucherStoreId(storeId);
+    setIsVoucherModalOpen(true);
+  };
+  const handleCloseVouchers = () => {
+    setIsVoucherModalOpen(false);
+    setVoucherStoreId(null);
+  };
+
+  const handleCashOut = async () => {
+    if (storeStats.totalDiscount <= 0) {
+      toast.error("Discount bằng 0, không thể rút tiền!");
+      return;
+    }
+
+    try {
+      await axios.post("http://localhost:8000/api/order/cashout-month", {
+        storeId: selectedStoreId,
+        month: selectedMonth,
+        year: selectedYear,
+      });
+      const updatedStats = await fetchStoreStats(
+        selectedStoreId,
+        selectedMonth,
+        selectedYear
+      );
+      setStoreStats(updatedStats);
+
+      toast.success("Rút tiền thành công!");
+    } catch (error) {
+      console.error("Cash out error:", error);
+      toast.error("Có lỗi xảy ra khi rút tiền!");
+    }
+  };
+
+  // PAGINATION
+  const itemsPerPage = 9;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems =
     stores?.length > 0 ? stores.slice(indexOfFirstItem, indexOfLastItem) : [];
-
   const totalPages =
     stores?.length > 0 ? Math.ceil(stores?.length / itemsPerPage) : 0;
 
@@ -97,6 +196,129 @@ const StoreManagement = () => {
 
   return (
     <div className="container mx-auto p-6">
+      {/* (A) Popup Stats */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 bg-black opacity-50"
+            onClick={handleCloseModal}
+          />
+          <div
+            className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-1/3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold mb-4">Store Statistics</h2>
+            {/* Chọn tháng */}
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="month"
+              >
+                Month
+              </label>
+              <select
+                id="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+              >
+                {[...Array(12).keys()].map((m) => (
+                  <option key={m + 1} value={m + 1}>
+                    Tháng {m + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Chọn năm */}
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="year"
+              >
+                Year
+              </label>
+              <select
+                id="year"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+              >
+                {[...Array(6).keys()].map((y) => {
+                  const year = 2020 + y;
+                  return (
+                    <option key={year} value={year}>
+                      Năm {year}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            {/* Thông tin stats */}
+            <p>
+              <strong>Total Orders:</strong> {storeStats.totalOrders}
+            </p>
+            <p>
+              <strong>Total Revenue:</strong>{" "}
+              {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(storeStats.totalRevenue)}
+            </p>
+            <p>
+              <strong>Total Discount (10%):</strong>{" "}
+              {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(storeStats.totalRevenue * 0.1)}
+            </p>
+
+            {/* Nút Cash Out + Close */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleCashOut}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 flex items-center"
+              >
+                <FaMoneyBillWave className="mr-2" />
+                Cash Out
+              </button>
+
+              <button
+                onClick={handleCloseModal}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* (B) Popup Vouchers */}
+      {isVoucherModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 bg-black opacity-50"
+            onClick={handleCloseVouchers}
+          />
+          <div
+            className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-1/3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold mb-4">All Vouchers</h2>
+            {/* Ví dụ: hiển thị voucherStoreId */}
+            <p>Đang xem voucher của storeId = {voucherStoreId}</p>
+            {/* Hoặc tuỳ bạn gọi API khác để lấy dữ liệu voucher */}
+            <button
+              onClick={handleCloseVouchers}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Button thêm store */}
       <div className="flex items-center mb-4">
         <button
           onClick={() => setIsAdding(true)}
@@ -108,75 +330,7 @@ const StoreManagement = () => {
           <div className="bg-white p-6 mb-6 rounded-lg shadow-lg max-w-2xl mx-auto">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Add Store</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Store Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter store name"
-                  value={newStore.storeName}
-                  onChange={(e) =>
-                    setNewStore({ ...newStore, storeName: e.target.value })
-                  }
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter address"
-                  value={newStore.storeAddress}
-                  onChange={(e) =>
-                    setNewStore({ ...newStore, storeAddress: e.target.value })
-                  }
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter phone number"
-                  value={newStore.storePhone}
-                  onChange={(e) =>
-                    setNewStore({ ...newStore, storePhone: e.target.value })
-                  }
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Owner ID
-                </label>
-                <input
-                  type="number"
-                  placeholder="Enter owner ID"
-                  value={newStore.ownerId}
-                  onChange={(e) =>
-                    setNewStore({ ...newStore, ownerId: e.target.value })
-                  }
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={newStore.status}
-                  onChange={(e) =>
-                    setNewStore({ ...newStore, status: e.target.checked })
-                  }
-                  className="h-5 w-5 text-blue-500 focus:ring-2 focus:ring-blue-500 rounded border-gray-300"
-                />
-                <label className="ml-2 text-sm font-medium text-gray-600">
-                  Active
-                </label>
-              </div>
+              {/* Form thêm Store (Store Name, Address, etc.) */}
             </div>
             <div className="flex justify-end mt-6 space-x-4">
               <button
@@ -195,6 +349,8 @@ const StoreManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Table hiển thị Store */}
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
           <thead>
@@ -203,7 +359,7 @@ const StoreManagement = () => {
               <th className="py-3 px-6 text-left">Store Name</th>
               <th className="py-3 px-6 text-left">Address</th>
               <th className="py-3 px-6 text-left">Phone</th>
-              <th className="py-3 px-6 text-left">Owner ID</th>
+              <th className="py-3 px-6 text-left">Owner</th>
               <th className="py-3 px-6 text-left">Status</th>
               <th className="py-3 px-6 text-left">Vouchers</th>
             </tr>
@@ -212,14 +368,21 @@ const StoreManagement = () => {
             {stores?.length > 0 ? (
               currentItems.map((store) => (
                 <React.Fragment key={store.storeId}>
-                  <tr className="border-b border-gray-200 hover:bg-gray-100">
+                  <tr
+                    className="border-b border-gray-200 hover:bg-gray-100"
+                    // Click vào row => mở popup stats
+                    onClick={() => handleShowStoreStats(store.storeId)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <td className="py-3 px-6 text-left">{store.storeId}</td>
                     <td className="py-3 px-6 text-left">{store.storeName}</td>
                     <td className="py-3 px-6 text-left">
                       {store.storeAddress}
                     </td>
                     <td className="py-3 px-6 text-left">{store.storePhone}</td>
-                    <td className="py-3 px-6 text-left">{store.ownerId}</td>
+                    <td className="py-3 px-6 text-left">
+                      {store.user?.displayName || "No Owner"}
+                    </td>
                     <td className="py-3 px-6 text-left">
                       {store.status ? (
                         <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
@@ -231,77 +394,19 @@ const StoreManagement = () => {
                         </span>
                       )}
                     </td>
+                    {/* (B) Cột Voucher: CLICK => mở popup vouchers, dừng bubble => không mở stats */}
                     <td
-                      className="py-3 px-6 text-left cursor-pointer flex items-center"
-                      onClick={() => toggleVoucherList(store.storeId)}
+                      className="py-3 px-6 text-left text-blue-600 underline cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenVouchers(store.storeId);
+                      }}
                     >
-                      {store?.vouchers?.length > 0 ? (
-                        <span className="flex items-center text-blue-500 font-semibold underline hover:text-blue-700">
-                          <FaTag className="mr-2" />
-                          {store?.vouchers?.length} Voucher(s)
-                        </span>
-                      ) : (
-                        <span className="text-gray-500">
-                          <FaTag className="mr-2" />
-                          No vouchers
-                        </span>
-                      )}
+                      {store?.vouchers?.length
+                        ? `${store.vouchers.length} Voucher(s)`
+                        : "No vouchers"}
                     </td>
                   </tr>
-                  {selectedStoreId === store.storeId && (
-                    <tr>
-                      <td colSpan="7">
-                        <div className="bg-gray-50 p-4 rounded-lg shadow-inner">
-                          {/* <ul>
-                            {store.vouchers.map((voucher) => (
-                              <li key={voucher.voucherId} className="mb-2">
-                                <span className="font-semibold">{voucher.voucherName}</span> - {voucher.voucherDiscount}
-                              </li>
-                            ))}
-                          </ul> */}
-                          {store?.vouchers?.length > 0 ? (
-                            <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
-                              <thead>
-                                <tr className="bg-gray-200 text-gray-600 text-sm leading-normal">
-                                  <th className="py-3 px-6 text-left">
-                                    Voucher ID
-                                  </th>
-                                  <th className="py-3 px-6 text-left">
-                                    Voucher Name
-                                  </th>
-                                  <th className="py-3 px-6 text-left">
-                                    Discount
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="text-gray-600 text-sm font-light">
-                                {store.vouchers.map((voucher) => (
-                                  <tr
-                                    key={voucher.voucherId}
-                                    className="border-b border-gray-200 hover:bg-gray-100"
-                                  >
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherId}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherName}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                      {voucher.voucherDiscount}%
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          ) : (
-                            <p className="text-center py-3 px-6">
-                              No vouchers found.
-                            </p>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </React.Fragment>
               ))
             ) : (
