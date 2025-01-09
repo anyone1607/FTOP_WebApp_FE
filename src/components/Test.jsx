@@ -1,100 +1,87 @@
 import React from "react";
-import { Link } from "react-router-dom";
-const Test = () => {
-  const classes = [
-    { id: 1, code: "SE16762", specialized: "Software Engineering" },
-    { id: 2, code: "SE12422", specialized: "Software Engineering" },
-  ];
+
+function ContactPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="flex items-center justify-between bg-gray-100 p-4 border-b">
-        <div className="flex items-center gap-2">
-          <button className="p-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 9.75L12 4l9 5.75M4 10v10a1 1 0 001 1h3m9-11v10a1 1 0 001 1h3m-11 0h4"
-              />
-            </svg>
-          </button>
-          <button className="px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition">
-            Classes
-          </button>
-        </div>
-        <h1 className="text-xl font-semibold">Home page</h1>
-        <div className="flex items-center gap-4">
-          <button className="p-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .53-.21 1.04-.586 1.414L4 17h5m6 0a3 3 0 01-6 0"
-              />
-            </svg>
-          </button>
-          <button className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 transition">
-            Anh Hải
-          </button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-blue-600 text-white py-8">
+        <div className="container mx-auto text-center">
+          <h1 className="text-4xl font-bold">Liên Hệ Với Chúng Tôi</h1>
+          <p className="mt-2 text-lg">Giới thiệu về ví điện tử FTOP</p>
         </div>
       </header>
 
-      <div className="p-4 flex items-center gap-2 border-b bg-white">
-        <input
-          type="text"
-          placeholder="Class's name"
-          className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
-        />
-        <select className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500">
-          <option value="">Status</option>
-          <option value="on-going">On-going</option>
-          <option value="finished">Finished</option>
-        </select>
-        <select className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500">
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-        </select>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded font-semibold hover:bg-blue-600 transition">
-          Search
-        </button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded font-semibold hover:bg-green-600 transition">
-          Add New Class
-        </button>
-      </div>
+      {/* Nội dung chính */}
+      <main className="flex-grow container mx-auto px-4 py-12">
+        <section className="mb-12 text-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            Giới Thiệu Về FTOP
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            FTOP là ví điện tử tiên tiến, an toàn và tiện lợi giúp bạn quản lý tài chính một cách hiệu quả. 
+            Với FTOP, bạn có thể thực hiện chuyển tiền, thanh toán trực tuyến, theo dõi giao dịch và nhiều 
+            tính năng thông minh khác chỉ trong vài cú nhấp chuột. Sứ mệnh của chúng tôi là mang đến 
+            trải nghiệm tài chính tốt nhất cho người dùng.
+          </p>
+        </section>
 
-      {/* Danh sách các lớp */}
-      <main>
-        {classes.map((item) => (
-          <Link key={item.id} to={`/projects`}>
-            <div className="bg-white border p-4 mb-4 rounded shadow-sm">
-              <h2>{item.code}</h2>
-              <p>Specialized: {item.specialized}</p>
-              <p className="text-sm text-gray-600">
-                Created at: 11/09/2024 09:30 AM
-              </p>
-              <span className="inline-block px-2 py-1 mt-2 text-sm bg-blue-100 text-blue-800 rounded">
-                ON-GOING
-              </span>
+        <section className="max-w-xl mx-auto bg-white p-8 shadow-lg rounded">
+          <h3 className="text-2xl font-bold mb-6 text-gray-800 text-center">
+            Gửi Yêu Cầu Liên Hệ
+          </h3>
+          <form className="space-y-4">
+            <div>
+              <label className="block text-left text-gray-700 mb-1" htmlFor="name">
+                Họ và tên
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Nhập họ và tên của bạn"
+              />
             </div>
-          </Link>
-        ))}
+            <div>
+              <label className="block text-left text-gray-700 mb-1" htmlFor="email">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Nhập email của bạn"
+              />
+            </div>
+            <div>
+              <label className="block text-left text-gray-700 mb-1" htmlFor="message">
+                Tin nhắn
+              </label>
+              <textarea
+                id="message"
+                rows="4"
+                className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Nhập tin nhắn của bạn"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Gửi
+            </button>
+          </form>
+        </section>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-4">
+        <div className="container mx-auto text-center">
+          <p>© {new Date().getFullYear()} FTOP. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
-};
+}
 
-export default Test;
+export default ContactPage;
+
