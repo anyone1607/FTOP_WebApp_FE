@@ -16,7 +16,6 @@ import About from "../pages/About/ProfileCard";
 import BankTranfer from "../components/BankTransferHistory/BankTransferHistory";
 import Confirm from "../components/ConfirmRequestWithdraw/ConfirmRequestWithdraw";
 import Test from "../components/Test";
-import ProjectsListPage from "../components/ProjectsListPage";
 export const routes = [
   {
     path: "home",
@@ -25,10 +24,6 @@ export const routes = [
   {
     path: "test",
     page: Test,
-  },
-  {
-    path: "projects",
-    page: ProjectsListPage,
   },
   {
     path: "dashboard",

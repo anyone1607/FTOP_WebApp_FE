@@ -7,6 +7,7 @@ const ConfirmRequestWithdraw = () => {
   const [userRole, setUserRole] = useState(localStorage.getItem('role'));
   const [currentPage, setCurrentPage] = useState(1);
   const location = useLocation();
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -38,8 +39,18 @@ const ConfirmRequestWithdraw = () => {
 
     if (newStatus === 'Success') {
       const request = updatedRequests[index];
+      const walletUserId = request.walletUserId; // Lấy userId từ request
+      const accountNumber = parseInt(request.accountNumber, 10); // Chuyển đổi accountNumber thành số nguyên
+      let amount = parseInt(request.amount.replace(/[^0-9.-]+/g, ""), 10); // Chuyển đổi amount thành số nguyên
+    amount *= 1000; // Nhân với 1000 để thêm 3 số 0 ở cuối // Chuyển đổi amount thành số nguyên
+
+    if ( !walletUserId || isNaN(accountNumber)) {
+      console.error('Invalid amount, walletUserId, or accountNumber:', { walletUserId, accountNumber });
+      alert('Invalid amount, walletUserId, or accountNumber. Please check the request data.');
+      return;
+    }
       try {
-        await withdraw(request.walletUserId, request.amount, request.bankName, request.accountNumber);
+        await withdraw(walletUserId, amount, request.bankName, accountNumber);
         alert('Withdrawal successful!');
       } catch (error) {
         console.error('Error processing withdrawal:', error);
@@ -77,6 +88,7 @@ const ConfirmRequestWithdraw = () => {
       }
 
       const data = await response.json();
+      console.log('Withdraw API response:', data); // Thêm log để kiểm tra phản hồi từ API
       return data;
     } catch (error) {
       console.error('Error:', error);
@@ -157,11 +169,13 @@ const ConfirmRequestWithdraw = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+
   return (
     <div className="max-w-full mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
       <h1 className="text-2xl font-bold mb-6 text-center">
         Danh sách yêu cầu rút tiền
       </h1>
+
       {/* Wrapper for responsiveness */}
       <div className="overflow-x-auto">
         <table className="table-auto w-full border-collapse border border-gray-300">

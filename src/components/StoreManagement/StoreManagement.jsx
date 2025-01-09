@@ -418,7 +418,6 @@ const StoreManagement = () => {
 
   // ===== (B) Popup Vouchers =====
   const handleOpenVouchers = (storeId) => {
-    // Nếu bạn cần gọi API lấy vouchers theo storeId, đặt hàm async ở đây
     setVoucherStoreId(storeId);
     setIsVoucherModalOpen(true);
   };
@@ -804,16 +803,16 @@ const StoreManagement = () => {
                   Cash Out
                 </button>
 
-                <button
-                  onClick={handleCloseModal}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
-                >
-                  Close
-                </button>
-              </div>
+              <button
+                onClick={handleCloseModal}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* (B) Popup Vouchers */}
         {isVoucherModalOpen && (

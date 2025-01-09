@@ -27,6 +27,24 @@ const HomePage = () => {
     },
   ];
 
+  const features = [
+    {
+      title: "Chuyển Tiền",
+      description: "Chuyển tiền miễn phí và an toàn tuyệt đối.",
+      image: "https://jnt.asia/wp-content/uploads/2024/08/gioi-thieu-e-wallet-la-gi.jpg",
+    },
+    {
+      title: "Thanh Toán Trước",
+      description: "Thanh toán trước, nhận hàng sau chỉ với một cú nhấp chuột.",
+      image: "https://img.freepik.com/free-photo/3d-payment-terminal-bank-card-blue-checkmark_107791-17014.jpg?semt=ais_hybrid",
+    },
+    {
+      title: "Theo dõi tài chính",
+      description: "Cập nhật lịch sử giao dịch theo thời gian thực.",
+      image: "https://www.pymnts.com/wp-content/uploads/2022/11/digital-wallets-consumer-finance-bill-pay.jpg",
+    },
+  ];
+
   const featuresRight = [
     {
       icon: "⚙️",
@@ -50,8 +68,6 @@ const HomePage = () => {
     {
       number: "1",
       title: "Tải ứng dụng FTOP",
-      description: "...",
-      // highlight: true,
     },
     { number: "2", title: "Nhập số điện thoại" },
     { number: "3", title: "Nhập mã xác thực" },
@@ -85,7 +101,7 @@ const HomePage = () => {
           {/* Logo */}
           <div className="flex items-center">
             <img
-              src="https://cdn-icons-png.flaticon.com/512/9181/9181081.png" // Thay bằng logo thực tế
+              src="https://cdn-icons-png.flaticon.com/512/9181/9181081.png"
               alt="Logo"
               className="w-10 h-10 mr-2"
             />
@@ -181,7 +197,7 @@ const HomePage = () => {
           {/* Phần Hình Ảnh Bên Phải */}
           <div className="md:w-1/2 flex justify-center">
             <img
-              src={`${process.env.PUBLIC_URL}/assets/homepage.gif`} // Thay bằng link hình ảnh thực tế
+              src={`${process.env.PUBLIC_URL}/assets/homepage.gif`}
               alt="Family Illustration"
               className="rounded-lg shadow-lg"
             />
@@ -314,7 +330,7 @@ const HomePage = () => {
                 <li key={index} className="flex items-start mb-4">
                   <span
                     className={`w-8 h-8 flex items-center justify-center rounded-full text-white font-bold mr-4 ${
-                      step.highlight ? "bg-blue-500" : "bg-blue-300"
+                      step.highlight ? "bg-blue-300" : "bg-blue-500"
                     }`}
                   >
                     {step.number}
@@ -347,18 +363,18 @@ const HomePage = () => {
             Tính Năng Nổi Bật
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white shadow-lg rounded">
-              <h3 className="text-xl font-bold mb-2">Chuyển Tiền</h3>
-              <p>Chuyển tiền miễn phí và an toàn tuyệt đối.</p>
-            </div>
-            <div className="p-6 bg-white shadow-lg rounded">
-              <h3 className="text-xl font-bold mb-2">Thanh Toán Trước</h3>
-              <p>Thanh toán trước, nhận hàng sau chỉ với một cú nhấp chuột.</p>
-            </div>
-            <div className="p-6 bg-white shadow-lg rounded">
-              <h3 className="text-xl font-bold mb-2">Theo dõi tài chính</h3>
-              <p>Cập nhật lịch sử giao dịch theo thời gian thực.</p>
-            </div>
+            {features.map((feature, index) => (
+              <div key={index} className="p-6 bg-white shadow-lg rounded">
+                {/* Hình ảnh minh họa */}
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="w-full h-48 object-cover rounded-md mb-4"
+                />
+                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
