@@ -8,15 +8,54 @@ import {
 } from "chart.js";
 import { Chart as GoogleChart } from "react-google-charts";
 import axios from "axios";
+import { useLocation } from 'react-router-dom';
+
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
 const Statistics = ({ filterType, filterValue }) => {
+  const [userId, setUserId] = useState(null);
+  const [chartData, setChartData] = useState([["Store", "Order Count"]]);
+  const [chartData1, setChartData1] = useState([["Product", "Percentage"]]);
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      setUserRole(role); // Set the user role state
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id); // Log user ID
+        setUserId(response.data.id); // Assuming the response contains the user object with an id field
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
   const fetchOrderCount = async (filterType, filterValue) => {
     try {
       const response = await axios.get(
         `http://localhost:8000/api/store/order-count`,
         {
-          params: { filterType, filterValue },
+          params: { filterType, filterValue, userId, role: userRole },
         }
       );
       return response.data;
@@ -29,13 +68,10 @@ const Statistics = ({ filterType, filterValue }) => {
   const transformDataForGoogleChart = (data) => {
     const chartData = [["Store", "Order Count"]];
     data.forEach((item) => {
-      chartData.push([item.storeName, parseInt(item.orderCount, 10)]);
+      chartData.push([String(item.storeName), parseInt(item.orderCount, 10)]);
     });
     return chartData;
   };
-
-  const [chartData, setChartData] = useState([["Store", "Order Count"]]);
-  const [chartData1, setChartData1] = useState([["Product", "Percentage"]]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,13 +80,16 @@ const Statistics = ({ filterType, filterValue }) => {
       setChartData(transformedData);
     };
     fetchData();
-  }, [filterType, filterValue]);
+  }, [filterType, filterValue, userId, userRole]);
 
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/order-item/sales"
+          "http://localhost:8000/api/order-item/sales",
+          {
+            params: { userId, role: userRole },
+          }
         );
         const sales = response.data;
 
@@ -74,7 +113,7 @@ const Statistics = ({ filterType, filterValue }) => {
     };
 
     fetchSalesData();
-  }, []);
+  }, [userId, userRole]);
 
   const chartOptions = {
     title: "Product Sales Statistics (Percentage)",
@@ -114,6 +153,7 @@ const Statistics = ({ filterType, filterValue }) => {
               chartType="PieChart"
               width="100%"
               height="400px"
+              
               data={chartData1}
               options={chartOptions}
             />

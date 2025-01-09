@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  PencilSquareIcon,
-  EyeIcon
-} from "@heroicons/react/24/outline";
+import { PencilSquareIcon, EyeIcon } from "@heroicons/react/24/outline";
 const Transaction = () => {
   const [transactions, setTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     // Giả lập API call
@@ -25,6 +23,49 @@ const Transaction = () => {
     fetchTransactions();
   }, []);
 
+  const itemsPerPage = 9;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems =
+    transactions.length > 0
+      ? transactions.slice(indexOfFirstItem, indexOfLastItem)
+      : [];
+
+  const totalPages =
+    transactions.length > 0 ? Math.ceil(transactions.length / itemsPerPage) : 0;
+
+  const getPaginationGroup = () => {
+    let startPage = 1;
+    let endPage = totalPages;
+    const range = 2;
+    if (totalPages > 5) {
+      if (currentPage <= range) {
+        startPage = 1;
+        endPage = 5;
+      } else if (currentPage + range >= totalPages) {
+        startPage = totalPages - 4;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - range;
+        endPage = currentPage + range;
+      }
+    }
+    let pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    if (startPage > 1) {
+      pages.unshift(1, "...");
+    }
+    if (endPage < totalPages) {
+      pages.push("...", totalPages);
+    }
+    return pages;
+  };
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="container mx-auto p-4">
       <table className="min-w-full bg-white border border-gray-300">
@@ -41,7 +82,7 @@ const Transaction = () => {
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction) => (
+          {currentItems.map((transaction) => (
             <tr key={transaction.transactionId} className="hover:bg-gray-100">
               <td className="py-2 px-4 border text-center">
                 {transaction.transactionId}
@@ -76,9 +117,7 @@ const Transaction = () => {
                 <button className="p-2 hover:bg-gray-200 rounded">
                   <PencilSquareIcon className="h-5 w-5 text-gray-600" />
                 </button>
-                <button
-                  className="p-2 hover:bg-gray-200 rounded"
-                >
+                <button className="p-2 hover:bg-gray-200 rounded">
                   <EyeIcon className="h-5 w-5 text-gray-600" />
                 </button>
               </td>
@@ -86,6 +125,26 @@ const Transaction = () => {
           ))}
         </tbody>
       </table>
+      <div className="flex justify-center mt-4">
+        <ul className="inline-flex items-center">
+          {getPaginationGroup().map((page, index) => (
+            <li key={index}>
+              {page === "..." ? (
+                <span className="px-4 py-2 text-gray-500">...</span>
+              ) : (
+                <button
+                  onClick={() => paginate(page)}
+                  className={`px-4 py-2 border text-gray-600 ${
+                    currentPage === page ? "bg-blue-500 text-white" : "bg-white"
+                  }`}
+                >
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

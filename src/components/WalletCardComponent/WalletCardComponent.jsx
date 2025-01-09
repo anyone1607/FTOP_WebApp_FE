@@ -126,10 +126,10 @@ const WalletCardComponent = () => {
         transactionResponse,
         bankTransferResponse,
       ] = await Promise.all([
-        axios.get("http://localhost:8000/api/user/countUser"),
-        axios.get("http://localhost:8000/api/order/countOrder"),
-        axios.get("http://localhost:8000/api/order/countPrice"),
-        axios.get("http://localhost:8000/api/transaction/countTransaction"),
+        axios.get(`http://localhost:8000/api/user/countUser?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/order/countOrder?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/order/countPrice?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/transaction/countTransaction?userId=${userId}&role=${userRole}`),
         axios.get(`http://localhost:8000/api/banktransfer/${userId}`),
       ]);
 
@@ -187,41 +187,38 @@ const WalletCardComponent = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        {[
-          {
-            label: "Total Users",
-            value: totalUsers,
-            icon: <FaUsers />,
-          },
-          {
-            label: "Total Orders",
-            value: totalOrders,
-            icon: <FaChartPie />,
-          },
-          {
-            label: "Total Revenue",
-            value: formatCurrency(totalRevenue),
-            icon: <FaChartBar />,
-          },
-          {
-            label: "Recent Transactions",
-            value: recentTransactionsCount,
-            icon: <FaChartLine />,
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center p-4 bg-white shadow rounded-lg"
-          >
-            <div className="text-blue-500 text-4xl mr-4">{item.icon}</div>
-            <div>
-              <p className="text-gray-500">{item.label}</p>
-              <h3 className="text-2xl font-semibold">{item.value}</h3>
-            </div>
-          </div>
-        ))}
+      <div className={`grid grid-cols-1 md:grid-cols-${userRole === 'owner' ? 3 : 4} gap-6 mb-6`}>
+    {userRole !== 'owner' && (
+      <div className="flex items-center p-4 bg-white shadow rounded-lg">
+        <div className="text-blue-500 text-4xl mr-4"><FaUsers /></div>
+        <div>
+          <p className="text-gray-500">Total Users</p>
+          <h3 className="text-2xl font-semibold">{totalUsers}</h3>
+        </div>
       </div>
+    )}
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartPie /></div>
+      <div>
+        <p className="text-gray-500">Total Orders</p>
+        <h3 className="text-2xl font-semibold">{totalOrders}</h3>
+      </div>
+    </div>
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartBar /></div>
+      <div>
+        <p className="text-gray-500">Total Revenue</p>
+        <h3 className="text-2xl font-semibold">{formatCurrency(totalRevenue)}</h3>
+      </div>
+    </div>
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartLine /></div>
+      <div>
+        <p className="text-gray-500">Recent Transactions</p>
+        <h3 className="text-2xl font-semibold">{recentTransactionsCount}</h3>
+      </div>
+    </div>
+  </div>
 
       <div className="grid grid-cols-2 gap-y-4 mb-6">
         {/* Số dư */}

@@ -4,6 +4,8 @@ import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outlin
 import { FaTag, FaEdit, FaTrash } from "react-icons/fa";
 import './StoreManagement.css'
 import { useLocation } from 'react-router-dom';
+import { FaMoneyBillWave } from "react-icons/fa";
+import { toast } from "react-toastify";
 const StoreManagement = () => {
   const [stores, setStores] = useState([]);
   const [selectedStoreId, setSelectedStoreId] = useState(null);
@@ -32,8 +34,8 @@ const StoreManagement = () => {
   const [fileName, setFileName] = useState("");
   const [selectedImageStoreId, setSelectedImageStoreId] = useState(null);
   const [selectedVoucherStoreId, setSelectedVoucherStoreId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [storeStats, setStoreStats] = useState({ totalOrders: 0, totalRevenue: 0 });
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [storeStats, setStoreStats] = useState({ totalOrders: 0, totalRevenue: 0 });
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -131,10 +133,23 @@ const StoreManagement = () => {
   };
 
 
+  // ===== (A) Popup Stats =====
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [storeStats, setStoreStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalDiscount: 0,
+  });
+
+  // ===== (B) Popup Vouchers =====
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  // Nếu bạn cần ID store để lấy voucher, có thể thêm state hoặc truyền param:
+  const [voucherStoreId, setVoucherStoreId] = useState(null);
+
+  // 1) Lấy danh sách Store
   const fetchStoresData = async () => {
     try {
       const storeResponse = await axios.get("http://localhost:8000/api/store");
-      console.log(storeResponse.data);
       setStores(storeResponse.data?.stores || storeResponse.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -145,39 +160,19 @@ const StoreManagement = () => {
     fetchStoresData();
   }, []);
 
-  // const handleAddStore = async () => {
-  //   try {
-  //     const response = await axios.post(
-  //       "http://localhost:8000/api/store",
-  //       newStore
-  //     );
-  //     console.log("Store added:", response.data);
-  //     setStores([...stores, response.data]); // Cập nhật danh sách
-  //     setNewStore({
-  //       storeName: "",
-  //       storeAddress: "",
-  //       storePhone: "",
-  //       ownerId: "",
-  //       status: false,
-  //     });
-  //     setIsAdding(false);
-  //   } catch (error) {
-  //     console.error("Error adding store:", error);
-  //   }
-  // };
   const handleAddStore = async () => {
     // Kiểm tra các trường bắt buộc
-  if (!newStore.storeName || !newStore.storeAddress || !newStore.storePhone || !newStore.ownerId) {
-    alert("Please fill in all required fields.");
-    return;
-  }
+    if (!newStore.storeName || !newStore.storeAddress || !newStore.storePhone || !newStore.ownerId) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
-  // Kiểm tra số điện thoại
-  const phoneRegex = /^[0-9]{10,11}$/;
-  if (!phoneRegex.test(newStore.storePhone)) {
-    alert("Please enter a valid phone number (10-11 digits).");
-    return;
-  }
+    // Kiểm tra số điện thoại
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(newStore.storePhone)) {
+      alert("Please enter a valid phone number (10-11 digits).");
+      return;
+    }
     const formData = new FormData();
     formData.append("storeName", newStore.storeName);
     formData.append("storeAddress", newStore.storeAddress);
@@ -199,8 +194,17 @@ const StoreManagement = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/api/store", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await axios.post(
+        "http://localhost:8000/api/store",
+        newStore
+      );
+      setStores([...stores, response.data]);
+      setNewStore({
+        storeName: "",
+        storeAddress: "",
+        storePhone: "",
+        ownerId: "",
+        status: false,
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -226,17 +230,15 @@ const StoreManagement = () => {
     }));
   };
 
-  // code cu
-  // const handleFileChange = (e) => { 
-  //   const files = Array.from(e.target.files);
-  //   const filePreviews = files.map((file) => URL.createObjectURL(file));
-  //   setImagePreviews(filePreviews);
+  // ===== (A) Hàm mở popup Stats =====
+  const handleShowStoreStats = async (storeId) => {
+    setSelectedStoreId(storeId);
+    setIsModalOpen(true);
+    const stats = await fetchStoreStats(storeId, selectedMonth, selectedYear);
+    setStoreStats(stats);
+  };
 
-  //   setNewStore((prevNewStore) => ({
-  //     ...prevNewStore,
-  //     storeImage: files,
-  //   }));
-  // };
+
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const filePreviews = files.map((file) => URL.createObjectURL(file));
@@ -282,15 +284,6 @@ const StoreManagement = () => {
   };
 
   const handleEditFileChange = (e) => {
-    // const file = e.target.files[0];
-    // const filePreview = URL.createObjectURL(file);
-    // setImagePreviews([filePreview]);
-    // setFileName(file.name);
-
-    // setEditStore((prevEditStore) => ({
-    //   ...prevEditStore,
-    //   storeImage: file,
-    // }));
     const files = Array.from(e.target.files);
     const filePreviews = files.map((file) => URL.createObjectURL(file));
 
@@ -312,12 +305,6 @@ const StoreManagement = () => {
     formData.append("storePhone", editStore.storePhone);
     formData.append("ownerId", editStore.ownerId);
     formData.append("status", editStore.status ? 'true' : 'false');
-    // if (editStore.storeImage instanceof File) {
-    //   formData.append("storeImage", editStore.storeImage);
-    // }
-    // Append existing images
-    // Append existing images as strings
-    // Append existing images as strings
     console.log("Existing Images:");
     editStore.storeImage.forEach((image, index) => {
       if (typeof image === 'string') {
@@ -401,13 +388,77 @@ const StoreManagement = () => {
 
 
 
-  const itemsPerPage = 9;
 
+
+  // Mỗi khi tháng/năm hoặc store thay đổi (và popup Stats đang mở), refetch
+  useEffect(() => {
+    if (!isModalOpen || !selectedStoreId) return;
+
+    const refetchStats = async () => {
+      const stats = await fetchStoreStats(
+        selectedStoreId,
+        selectedMonth,
+        selectedYear
+      );
+      setStoreStats(stats);
+    };
+    refetchStats();
+  }, [selectedMonth, selectedYear, selectedStoreId, isModalOpen]);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setStoreStats({
+      totalOrders: 0,
+      totalRevenue: 0,
+      totalDiscount: 0,
+    });
+    setSelectedMonth(new Date().getMonth() + 1);
+    setSelectedYear(new Date().getFullYear());
+  };
+
+  // ===== (B) Popup Vouchers =====
+  const handleOpenVouchers = (storeId) => {
+    // Nếu bạn cần gọi API lấy vouchers theo storeId, đặt hàm async ở đây
+    setVoucherStoreId(storeId);
+    setIsVoucherModalOpen(true);
+  };
+  const handleCloseVouchers = () => {
+    setIsVoucherModalOpen(false);
+    setVoucherStoreId(null);
+  };
+
+  const handleCashOut = async () => {
+    if (storeStats.totalDiscount <= 0) {
+      toast.error("Discount bằng 0, không thể rút tiền!");
+      return;
+    }
+
+    try {
+      await axios.post("http://localhost:8000/api/order/cashout-month", {
+        storeId: selectedStoreId,
+        month: selectedMonth,
+        year: selectedYear,
+      });
+      const updatedStats = await fetchStoreStats(
+        selectedStoreId,
+        selectedMonth,
+        selectedYear
+      );
+      setStoreStats(updatedStats);
+
+      toast.success("Rút tiền thành công!");
+    } catch (error) {
+      console.error("Cash out error:", error);
+      toast.error("Có lỗi xảy ra khi rút tiền!");
+    }
+  };
+
+  // PAGINATION
+  const itemsPerPage = 9;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems =
     stores?.length > 0 ? stores.slice(indexOfFirstItem, indexOfLastItem) : [];
-
   const totalPages =
     stores?.length > 0 ? Math.ceil(stores?.length / itemsPerPage) : 0;
 
@@ -479,14 +530,14 @@ const StoreManagement = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4 text-center">Store Management</h1>
       <div className="flex items-center mb-4">
-      {userRole === 'manager' && (
-        <button
-          onClick={() => setIsAdding(true)}
-          className="bg-blue-500 text-white py-2 px-4 rounded"
-        >
-          Add New Store
-        </button>
-      )}
+        {userRole === 'manager' && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="bg-blue-500 text-white py-2 px-4 rounded"
+          >
+            Add New Store
+          </button>
+        )}
         {/* Modal pop-up for updating store */}
         {isEditing && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -667,6 +718,128 @@ const StoreManagement = () => {
           </div>
         )}
 
+        {/* (A) Popup Stats */}
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="absolute inset-0 bg-black opacity-50"
+              onClick={handleCloseModal}
+            />
+            <div
+              className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-1/3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold mb-4">Store Statistics</h2>
+              {/* Chọn tháng */}
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="month"
+                >
+                  Month
+                </label>
+                <select
+                  id="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+                >
+                  {[...Array(12).keys()].map((m) => (
+                    <option key={m + 1} value={m + 1}>
+                      Tháng {m + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Chọn năm */}
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="year"
+                >
+                  Year
+                </label>
+                <select
+                  id="year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+                >
+                  {[...Array(6).keys()].map((y) => {
+                    const year = 2020 + y;
+                    return (
+                      <option key={year} value={year}>
+                        Năm {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              {/* Thông tin stats */}
+              <p>
+                <strong>Total Orders:</strong> {storeStats.totalOrders}
+              </p>
+              <p>
+                <strong>Total Revenue:</strong>{" "}
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(storeStats.totalRevenue)}
+              </p>
+              <p>
+                <strong>Total Discount (10%):</strong>{" "}
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(storeStats.totalRevenue * 0.1)}
+              </p>
+
+              {/* Nút Cash Out + Close */}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={handleCashOut}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 flex items-center"
+                >
+                  <FaMoneyBillWave className="mr-2" />
+                  Cash Out
+                </button>
+
+                <button
+                  onClick={handleCloseModal}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* (B) Popup Vouchers */}
+        {isVoucherModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="absolute inset-0 bg-black opacity-50"
+              onClick={handleCloseVouchers}
+            />
+            <div
+              className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-1/3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold mb-4">All Vouchers</h2>
+              {/* Ví dụ: hiển thị voucherStoreId */}
+              <p>Đang xem voucher của storeId = {voucherStoreId}</p>
+              {/* Hoặc tuỳ bạn gọi API khác để lấy dữ liệu voucher */}
+              <button
+                onClick={handleCloseVouchers}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
         {isAdding && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 mb-6 rounded-lg shadow-lg max-w-2xl mx-auto">
@@ -746,27 +919,6 @@ const StoreManagement = () => {
                     Active
                   </label>
                 </div>
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Store Image
-                  </label>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileChange}
-                    className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                  <div className="mt-2 flex flex-wrap">
-                    {imagePreviews.map((preview, index) => (
-                      <img
-                        key={index}
-                        src={preview}
-                        alt={`Preview ${index}`}
-                        className="w-20 h-20 object-cover mr-2 mb-2"
-                      />
-                    ))}
-                  </div>
-                </div> */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
                     Store Images
@@ -778,14 +930,6 @@ const StoreManagement = () => {
                     className="w-full border-gray-300 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                   <div className="mt-2 flex flex-wrap">
-                    {/* {imagePreviews.map((preview, index) => (
-                      <img
-                        key={index}
-                        src={preview}
-                        alt={`Preview ${index}`}
-                        className="w-20 h-20 object-cover mr-2 mb-2"
-                      />
-                    ))} */}
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
                         <img
@@ -824,6 +968,7 @@ const StoreManagement = () => {
         )}
       </div>
 
+      {/* Table hiển thị Store */}
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
           <thead>
@@ -852,13 +997,22 @@ const StoreManagement = () => {
             {stores?.length > 0 ? (
               currentItems.map((store) => (
                 <React.Fragment key={store.storeId}>
-                  <tr className="hover:bg-gray-100 transition-all">
-                    <td className="border border-gray-200 px-4 py-2">{store.storeId}</td>
-                    <td className="border border-gray-200 px-4 py-2">{store.storeName}</td>
-                    <td className="border border-gray-200 px-4 py-2">{store.storeAddress}</td>
-                    <td className="border border-gray-200 px-4 py-2">{store.storePhone}</td>
-                    <td className="border border-gray-200 px-4 py-2">{store.owner.displayName}</td>
-                    <td className="border border-gray-200 px-4 py-2">
+                  <tr
+                    className="border-b border-gray-200 hover:bg-gray-100"
+                    // Click vào row => mở popup stats
+                    onClick={() => handleShowStoreStats(store.storeId)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td className="py-3 px-6 text-left">{store.storeId}</td>
+                    <td className="py-3 px-6 text-left">{store.storeName}</td>
+                    <td className="py-3 px-6 text-left">
+                      {store.storeAddress}
+                    </td>
+                    <td className="py-3 px-6 text-left">{store.storePhone}</td>
+                    <td className="py-3 px-6 text-left">
+                      {store.user?.displayName || "No Owner"}
+                    </td>
+                    <td className="py-3 px-6 text-left">
                       {store.status ? (
                         <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
                           Active
@@ -890,21 +1044,13 @@ const StoreManagement = () => {
                         toggleVoucherList(store.storeId);
                       }}
                     >
-                      {store?.vouchers?.length > 0 ? (
-                        <span className="flex items-center text-blue-500 font-semibold underline hover:text-blue-700">
-                          <FaTag className="mr-2" />
-                          {store?.vouchers?.length} Voucher(s)
-                        </span>
-                      ) : (
-                        <span className="text-gray-500">
-                          <FaTag className="mr-2" />
-                          No vouchers
-                        </span>
-                      )}
+                      {store?.vouchers?.length
+                        ? `${store.vouchers.length} Voucher(s)`
+                        : "No vouchers"}
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       <button
-                        onClick={() => handleViewStore(store.storeId)}
+                        onClick={() => handleShowStoreStats(store.storeId)}
                         className="p-2 hover:bg-gray-200 rounded"
                       >
                         <EyeIcon className="h-5 w-5 text-gray-600" />
@@ -972,65 +1118,7 @@ const StoreManagement = () => {
           onSelectImage={(index) => setMainImage(selectedImageStoreId, index)}
         />
 
-        {/* Modal for Store Statistics */}
-        {isModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="absolute inset-0 bg-black opacity-50"></div>
-            <div className="bg-white rounded-lg shadow-lg p-6 z-10 w-1/3">
-              <h2 className="text-xl font-semibold mb-4">Store Statistics</h2>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="month">
-                  Month
-                </label>
-                <select
-                  id="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
-                >
 
-                  {[...Array(12).keys()].map((month) => (
-                    <option key={month + 1} value={month + 1}>
-                      {month + 1}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="year">
-                  Year
-                </label>
-                <select
-                  id="year"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
-                >
-                  {[...Array(6).keys()].map((year) => (
-                    <option key={year + 2020} value={year + 2020}>
-                      {year + 2020}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p><strong>Total Orders:</strong> {storeStats.totalOrders}</p>
-              <p><strong>Total Revenue:</strong> {new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-              }).format(storeStats.totalRevenue)}</p>
-              <p><strong>Admin Revenue (10%):</strong> {new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-              }).format(storeStats.totalRevenue * 0.1)}</p>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
         <div className="flex justify-center mt-4">
           <ul className="inline-flex items-center">
             {getPaginationGroup().map((page, index) => (

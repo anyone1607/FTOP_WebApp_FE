@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PencilSquareIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { FaTrash, FaEye } from "react-icons/fa";
+import { FaTrash, FaEye,FaMoneyBillWave } from "react-icons/fa";
 import axios from "axios";
 
 const FoodOrdersComponent = () => {
@@ -19,8 +19,8 @@ const FoodOrdersComponent = () => {
   const [stores, setStores] = useState([]);
   const [userId, setUserId] = useState(null);
   const [role, setRole] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
+  const [unCashedOutAmount, setUnCashedOutAmount] = useState(0);
 
   // useEffect(() => {
   //   const fetchOrders = async () => {
@@ -121,6 +121,25 @@ const FoodOrdersComponent = () => {
 
     fetchStores();
   }, []);
+
+  useEffect(() => {
+    if (role === 'owner') {
+      fetchUnCashedOutAmount();
+    }
+  }, [role]);
+
+  const fetchUnCashedOutAmount = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/order/uncashed-out-amount', {
+        params: {
+          userId: userId
+        }
+      });
+      setUnCashedOutAmount(response.data.amount);
+    } catch (error) {
+      console.error("Error fetching uncashed out amount:", error);
+    }
+  };
 
   const fetchOrderDetails = async (orderId) => {
     try {
@@ -273,9 +292,20 @@ const FoodOrdersComponent = () => {
 
   return (
     <div className="container mx-auto p-6">
+      {role === 'owner' && (
+        <button className="fixed top-4 right-4 bg-yellow-500 text-white p-2 rounded-full shadow-lg flex items-center">
+          <FaMoneyBillWave className="mr-2" />
+          {new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(unCashedOutAmount)}
+        </button>
+      )}
       <div className="mb-4 flex justify-center items-center">
         <h1 className="text-2xl font-bold">Order Management</h1>
       </div>
+
+      
 
       {/* Thanh tìm kiếm và bộ lọc */}
       <div className="flex justify-between mb-6 space-x-4">
