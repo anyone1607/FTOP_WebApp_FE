@@ -119,6 +119,7 @@ const WalletCardComponent = () => {
   const fetchTotalData = async () => {
     try {
       console.log("Fetching total data for user ID:", userId); // Log user ID before
+      console.log("Fetching total data for user role:", userRole);
       const [
         userResponse,
         orderResponse,
@@ -145,6 +146,8 @@ const WalletCardComponent = () => {
 
   useEffect(() => {
     if (userId) {
+      console.log("User ID:", userId);
+      console.log("User Role:", userRole);
       fetchUserData();
       fetchTotalData();
       fetchTransactions();
@@ -167,8 +170,10 @@ const WalletCardComponent = () => {
   };
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (userId) {
+      fetchTransactions();
+    }
+  }, [userId]);
 
   const filteredTransactions = transactions.filter(
     (transaction) =>

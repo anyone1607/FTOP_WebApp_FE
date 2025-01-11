@@ -51,6 +51,10 @@ const Statistics = ({ filterType, filterValue }) => {
   }, []);
 
   const fetchOrderCount = async (filterType, filterValue) => {
+    if (!userId) {
+      console.error("User ID is null, cannot fetch order count");
+      return [];
+    }
     try {
       const response = await axios.get(
         `http://localhost:8000/api/store/order-count`,
@@ -81,36 +85,37 @@ const Statistics = ({ filterType, filterValue }) => {
     };
     fetchData();
   }, [filterType, filterValue, userId, userRole]);
+  const fetchSalesData = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/order-item/sales",
+        {
+          params: { userId, role: userRole },
+        }
+      );
+      const sales = response.data;
+
+      const totalSold = sales.reduce(
+        (sum, item) => sum + Number(item.totalSold),
+        0
+      );
+
+      const formattedData = [
+        ["Product", "Percentage"],
+        ...sales.map((item) => [
+          `Product ${item.product.productId}`,
+          (Number(item.totalSold) / totalSold) * 100,
+        ]),
+      ];
+
+      setChartData1(formattedData);
+    } catch (error) {
+      console.error("Error fetching sales data:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchSalesData = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/api/order-item/sales",
-          {
-            params: { userId, role: userRole },
-          }
-        );
-        const sales = response.data;
-
-        const totalSold = sales.reduce(
-          (sum, item) => sum + Number(item.totalSold),
-          0
-        );
-
-        const formattedData = [
-          ["Product", "Percentage"],
-          ...sales.map((item) => [
-            `Product ${item.product.productId}`,
-            (Number(item.totalSold) / totalSold) * 100,
-          ]),
-        ];
-
-        setChartData1(formattedData);
-      } catch (error) {
-        console.error("Error fetching sales data:", error);
-      }
-    };
+    
 
     fetchSalesData();
   }, [userId, userRole]);

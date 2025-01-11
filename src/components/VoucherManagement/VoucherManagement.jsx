@@ -374,7 +374,7 @@ const VoucherManagement = () => {
         ariaHideApp={false}
       >
         <div className="modal-header flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Deleted Vouchers</h2>
+          <h2 className="text-lg font-semibold">Pre-Active Vouchers</h2>
           <button
             onClick={closeModal}
             className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition duration-300"
@@ -426,7 +426,7 @@ const VoucherManagement = () => {
               ) : (
                 <tr>
                   <td colSpan="4" className="text-center py-3 px-6">
-                    No deleted vouchers found.
+                    No pre-active vouchers found.
                   </td>
                 </tr>
               )}

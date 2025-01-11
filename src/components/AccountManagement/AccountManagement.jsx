@@ -349,9 +349,7 @@ const AccountManagement = () => {
                   >
                     <EyeIcon className="h-5 w-5 text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-red-100 rounded">
-                    <TrashIcon className="h-5 w-5 text-red-600" />
-                  </button>
+                
                 </td>
               </tr>
             ))
