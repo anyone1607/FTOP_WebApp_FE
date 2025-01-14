@@ -41,7 +41,7 @@ const AccountManagement = () => {
   const fetchBankTransfers = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/banktransfer/${userId}`
+        `http://localhost:8000/api/banktransfer/transfers/${userId}`
       );
       const transfers = Array.isArray(response.data)
         ? response.data
@@ -99,13 +99,13 @@ const AccountManagement = () => {
     searchUsers();
   }, [searchQuery, selectedRole]);
 
-  
+
 
   useEffect(() => {
     searchUsers();
   }, [searchQuery, selectedRole]);
 
-  
+
 
   const itemsPerPage = 10;
 
@@ -176,81 +176,6 @@ const AccountManagement = () => {
         </select>
       </div>
 
-      {/* <table className="min-w-full table-auto border-collapse border border-gray-200 shadow-lg"> */}
-      {/* <table className="min-w-full table-auto border-collapse border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-200 px-4 py-2">ID</th>
-            <th className="border border-gray-200 px-4 py-2">Name</th>
-            <th className="border border-gray-200 px-4 py-2">Role</th>
-            <th className="border border-gray-200 px-4 py-2">Wallet Balance</th>
-            <th className="border border-gray-200 px-4 py-2">Status</th>
-            <th className="border border-gray-200 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.length > 0 ? (
-            currentItems.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-100">
-                <td className="border border-gray-200 px-4 py-2">{user.id}</td>
-                <td className="border border-gray-200 px-4 py-2 flex items-center">
-                  <div className="flex-shrink-0">
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt="Avatar"
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-500">No Avatar</span>
-                    )}
-                  </div>
-                  <div className="ml-4 overflow-hidden">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {user.email}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {user.displayName}
-                    </p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 px-4 py-2">{user.role}</td>
-                <td className="border border-gray-200 px-4 py-2">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(user.walletBalance)}
-                </td>
-                <td
-                  className={`border border-gray-200 px-4 py-2 ${
-                    user.isActive ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {user.isActive ? "Active" : "Inactive"}
-                </td>
-                <td className="border border-gray-200 px-4 py-2">
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={() => handleUserClick(user)}
-                  >
-                    View Bank Transfers
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                className="border border-gray-200 px-4 py-2 text-center"
-                colSpan="7"
-              >
-                No users found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table> */}
-
       <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
         <thead>
           <tr>
@@ -302,13 +227,13 @@ const AccountManagement = () => {
                 <td className="border border-gray-200 px-4 py-2">
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${user.role === "admin" ||
-                        user.role === "manager" ||
-                        user.role === "staff"
-                        ? "bg-purple-100 text-purple-600"
-                        : user.role === "owner" || user.role === "student"
+                      user.role === "manager" ||
+                      user.role === "staff"
+                      ? "bg-purple-100 text-purple-600"
+                      : user.role === "owner" || user.role === "student"
                         ? "bg-green-100 text-green-600"
                         : "bg-orange-100 text-orange-600"
-                    }`}
+                      }`}
                   >
                     {user.role}
                   </span>
@@ -349,7 +274,7 @@ const AccountManagement = () => {
                   >
                     <EyeIcon className="h-5 w-5 text-gray-600" />
                   </button>
-                
+
                 </td>
               </tr>
             ))
@@ -443,10 +368,10 @@ const AccountManagement = () => {
                         </td>
                         <td
                           className={`py-3 px-4 border-b font-medium ${transfer.status === true
-                              ? "text-green-600"
-                              : transfer.status === false
-                                ? "text-red-600"
-                                : ""
+                            ? "text-green-600"
+                            : transfer.status === false
+                              ? "text-red-600"
+                              : ""
                             }`}
                         >
                           {transfer.status === true

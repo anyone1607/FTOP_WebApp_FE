@@ -103,7 +103,7 @@ const Statistics = ({ filterType, filterValue }) => {
       const formattedData = [
         ["Product", "Percentage"],
         ...sales.map((item) => [
-          `Product ${item.product.productId}`,
+          ` ${item.product.productName}`,
           (Number(item.totalSold) / totalSold) * 100,
         ]),
       ];
@@ -156,7 +156,7 @@ const Statistics = ({ filterType, filterValue }) => {
             </h2>
             <GoogleChart
               chartType="PieChart"
-              width="100%"
+              width="400px"
               height="400px"
               
               data={chartData1}

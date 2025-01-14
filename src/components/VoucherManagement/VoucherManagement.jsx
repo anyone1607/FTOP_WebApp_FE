@@ -240,11 +240,7 @@ const VoucherManagement = () => {
     <div className="p-6 text-center">
       <h1 className="text-2xl font-bold mb-4">Voucher Management</h1>
       <div className="flex justify-between mb-6">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 flex items-center"
-        >
-          <FaPlus className="mr-2" /> Add Voucher
-        </button>
+        
         <button
           onClick={openModal}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"

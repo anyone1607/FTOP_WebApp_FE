@@ -1,27 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { PencilSquareIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { useLocation } from 'react-router-dom';
+import axios from "axios";
 const Transaction = () => {
   const [transactions, setTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [userId, setUserId] = useState(null);
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+  const location = useLocation();
 
   useEffect(() => {
-    // Giả lập API call
-    const fetchTransactions = async () => {
-      const mockData = [
-        {
-          transactionId: 1,
-          transferUser: { id: 35, name: "Test Owner 2" },
-          receiveUser: { id: 36, name: "Manager Ftop" },
-          transactionDate: "2024-06-15T10:00:00Z",
-          transactionAmount: 100.0,
-          transactionDescription: "Chuyển tiền mua hàng",
-          status: true,
-        },
-      ];
-      setTransactions(mockData);
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      setUserRole(role); // Set the user role state
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id); // Log user ID
+        setUserId(response.data.id); // Assuming the response contains the user object with an id field
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
     };
-    fetchTransactions();
+
+    fetchUserId();
   }, []);
+
+
+  const fetchTransactions = async () => {
+    try {
+      console.log("Fetching transactions for user ID:", userId); // Log user ID 
+      const response = await axios.get(
+        `http://localhost:8000/api/transaction/searchAll/${userId}`  
+      );
+      setTransactions(response.data);
+      console.log("data: " + response.data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchTransactions();
+    }
+  }, [userId]);
 
   const itemsPerPage = 9;
 
@@ -88,10 +125,10 @@ const Transaction = () => {
                 {transaction.transactionId}
               </td>
               <td className="py-2 px-4 border text-center">
-                {transaction.transferUser.name}
+                {transaction.transferUser.displayName}
               </td>
               <td className="py-2 px-4 border text-center">
-                {transaction.receiveUser.name}
+                {transaction.receiveUser.displayName}
               </td>
               <td className="py-2 px-4 border text-center">
                 {new Date(transaction.transactionDate).toLocaleString()}
@@ -114,12 +151,7 @@ const Transaction = () => {
                 </span>
               </td>
               <td className="border border-gray-200 px-4 py-2 flex items-center space-x-2">
-                <button className="p-2 hover:bg-gray-200 rounded">
-                  <PencilSquareIcon className="h-5 w-5 text-gray-600" />
-                </button>
-                <button className="p-2 hover:bg-gray-200 rounded">
-                  <EyeIcon className="h-5 w-5 text-gray-600" />
-                </button>
+               
               </td>
             </tr>
           ))}

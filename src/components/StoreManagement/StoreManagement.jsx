@@ -15,7 +15,7 @@ const StoreManagement = () => {
     storeName: "",
     storeAddress: "",
     storePhone: "",
-    ownerId: "",
+    userId: "",
     status: false,
     storeImage: [],
   });
@@ -24,7 +24,7 @@ const StoreManagement = () => {
     storeName: "",
     storeAddress: "",
     storePhone: "",
-    ownerId: "",
+    userId: "",
     status: "",
     storeImage: [],
   });
@@ -177,7 +177,7 @@ const StoreManagement = () => {
     formData.append("storeName", newStore.storeName);
     formData.append("storeAddress", newStore.storeAddress);
     formData.append("storePhone", newStore.storePhone);
-    formData.append("ownerId", newStore.ownerId);
+    formData.append("userId", newStore.ownerId);
     formData.append("status", newStore.status ? 'true' : 'false'); // Convert to string 'true' or 'false'
     // newStore.storeImage.forEach((file, index) => {
     //   formData.append(`storeImage`, file);
@@ -203,7 +203,7 @@ const StoreManagement = () => {
         storeName: "",
         storeAddress: "",
         storePhone: "",
-        ownerId: "",
+        userId: "",
         status: false,
       });
 
@@ -303,7 +303,7 @@ const StoreManagement = () => {
     formData.append("storeName", editStore.storeName);
     formData.append("storeAddress", editStore.storeAddress);
     formData.append("storePhone", editStore.storePhone);
-    formData.append("ownerId", editStore.ownerId);
+    formData.append("userId", editStore.ownerId);
     formData.append("status", editStore.status ? 'true' : 'false');
     console.log("Existing Images:");
     editStore.storeImage.forEach((image, index) => {

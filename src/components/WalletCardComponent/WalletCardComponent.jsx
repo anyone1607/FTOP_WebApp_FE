@@ -131,7 +131,7 @@ const WalletCardComponent = () => {
         axios.get(`http://localhost:8000/api/order/countOrder?userId=${userId}&role=${userRole}`),
         axios.get(`http://localhost:8000/api/order/countPrice?userId=${userId}&role=${userRole}`),
         axios.get(`http://localhost:8000/api/transaction/countTransaction?userId=${userId}&role=${userRole}`),
-        axios.get(`http://localhost:8000/api/banktransfer/${userId}`),
+        axios.get(`http://localhost:8000/api/banktransfer/info/${userId}`),
       ]);
 
       setTotalUsers(userResponse.data.totalUsers);
