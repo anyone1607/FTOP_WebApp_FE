@@ -1,0 +1,23 @@
+/* Modal styles */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;  /* Căn giữa theo chiều ngang */
+  align-items: center;  /* Căn giữa theo chiều dọc */
+  z-index: 999;
+}
+
+.modal-content {
+  width: 80%;
+  max-width: 1000px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  /* Đảm bảo modal có kích thước phù hợp và không bị lệch khi có nội dung */
+}

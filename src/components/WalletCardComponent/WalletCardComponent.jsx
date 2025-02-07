@@ -13,6 +13,7 @@ import {
 import { Bar, Line } from "react-chartjs-2";
 import { GiMoneyStack } from "react-icons/gi";
 import { Chart, registerables } from "chart.js";
+import { useLocation } from 'react-router-dom';
 Chart.register(...registerables);
 
 const WalletCardComponent = () => {
@@ -23,6 +24,52 @@ const WalletCardComponent = () => {
   const [recentTransactionsCount, setRecentTransactionsCount] = useState(0);
   const [bankTransferInfo, setBankTransferInfo] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [userData, setUserData] = useState({});
+  const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      setUserRole(role); // Set the user role state
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id); // Log user ID
+        setUserId(response.data.id); // Assuming the response contains the user object with an id field
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/user/findUser/${userId}`);
+      console.log("Fetched user data:", response.data); // Log user data
+      setUserData(response.data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
 
   const [barData, setBarData] = useState({
     labels: [],
@@ -71,6 +118,8 @@ const WalletCardComponent = () => {
 
   const fetchTotalData = async () => {
     try {
+      console.log("Fetching total data for user ID:", userId); // Log user ID before
+      console.log("Fetching total data for user role:", userRole);
       const [
         userResponse,
         orderResponse,
@@ -78,11 +127,11 @@ const WalletCardComponent = () => {
         transactionResponse,
         bankTransferResponse,
       ] = await Promise.all([
-        axios.get("http://localhost:8000/api/user/countUser"),
-        axios.get("http://localhost:8000/api/order/countOrder"),
-        axios.get("http://localhost:8000/api/order/countPrice"),
-        axios.get("http://localhost:8000/api/transaction/countTransaction"),
-        axios.get("http://localhost:8000/api/banktransfer/1"),
+        axios.get(`http://localhost:8000/api/user/countUser?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/order/countOrder?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/order/countPrice?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/transaction/countTransaction?userId=${userId}&role=${userRole}`),
+        axios.get(`http://localhost:8000/api/banktransfer/${userId}`),
       ]);
 
       setTotalUsers(userResponse.data.totalUsers);
@@ -96,14 +145,22 @@ const WalletCardComponent = () => {
   };
 
   useEffect(() => {
-    fetchTotalData();
-  }, []);
+    if (userId) {
+      console.log("User ID:", userId);
+      console.log("User Role:", userRole);
+      fetchUserData();
+      fetchTotalData();
+      fetchTransactions();
+    }
+  }, [userId]);
+
+  
 
   const fetchTransactions = async () => {
     try {
-      const receiveUserId = 35;
+      console.log("Fetching transactions for user ID:", userId); // Log user ID 
       const response = await axios.get(
-        `http://localhost:8000/api/transaction/search/${receiveUserId}`
+        `http://localhost:8000/api/transaction/searchAll/${userId}`  
       );
       setTransactions(response.data);
       console.log("data: " + response.data);
@@ -113,8 +170,10 @@ const WalletCardComponent = () => {
   };
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (userId) {
+      fetchTransactions();
+    }
+  }, [userId]);
 
   const filteredTransactions = transactions.filter(
     (transaction) =>
@@ -133,41 +192,38 @@ const WalletCardComponent = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        {[
-          {
-            label: "Total Users",
-            value: totalUsers,
-            icon: <FaUsers />,
-          },
-          {
-            label: "Total Orders",
-            value: totalOrders,
-            icon: <FaChartPie />,
-          },
-          {
-            label: "Total Revenue",
-            value: formatCurrency(totalRevenue),
-            icon: <FaChartBar />,
-          },
-          {
-            label: "Recent Transactions",
-            value: recentTransactionsCount,
-            icon: <FaChartLine />,
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center p-4 bg-white shadow rounded-lg"
-          >
-            <div className="text-blue-500 text-4xl mr-4">{item.icon}</div>
-            <div>
-              <p className="text-gray-500">{item.label}</p>
-              <h3 className="text-2xl font-semibold">{item.value}</h3>
-            </div>
-          </div>
-        ))}
+      <div className={`grid grid-cols-1 md:grid-cols-${userRole === 'owner' ? 3 : 4} gap-6 mb-6`}>
+    {userRole !== 'owner' && (
+      <div className="flex items-center p-4 bg-white shadow rounded-lg">
+        <div className="text-blue-500 text-4xl mr-4"><FaUsers /></div>
+        <div>
+          <p className="text-gray-500">Total Users</p>
+          <h3 className="text-2xl font-semibold">{totalUsers}</h3>
+        </div>
       </div>
+    )}
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartPie /></div>
+      <div>
+        <p className="text-gray-500">Total Orders</p>
+        <h3 className="text-2xl font-semibold">{totalOrders}</h3>
+      </div>
+    </div>
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartBar /></div>
+      <div>
+        <p className="text-gray-500">Total Revenue</p>
+        <h3 className="text-2xl font-semibold">{formatCurrency(totalRevenue)}</h3>
+      </div>
+    </div>
+    <div className="flex items-center p-4 bg-white shadow rounded-lg">
+      <div className="text-blue-500 text-4xl mr-4"><FaChartLine /></div>
+      <div>
+        <p className="text-gray-500">Recent Transactions</p>
+        <h3 className="text-2xl font-semibold">{recentTransactionsCount}</h3>
+      </div>
+    </div>
+  </div>
 
       <div className="grid grid-cols-2 gap-y-4 mb-6">
         {/* Số dư */}
@@ -178,14 +234,7 @@ const WalletCardComponent = () => {
           <div className="flex flex-col">
             <span className="text-gray-600">Số dư</span>
             <p className="text-3xl font-bold text-blue-600">
-              {new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-              }).format(
-                bankTransferInfo
-                  ? bankTransferInfo.transferAmount
-                  : "Đang tải..."
-              )}
+            {formatCurrency(userData.walletBalance || 0)}
             </p>
           </div>
         </div>
@@ -237,6 +286,7 @@ const WalletCardComponent = () => {
       </div>
 
       {/* Biểu đồ */}
+      {userRole === 'admin' && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 shadow rounded-lg">
           <div className="flex justify-between items-center mb-4">
@@ -252,6 +302,8 @@ const WalletCardComponent = () => {
           <Line data={lineData} options={{ responsive: true }} />
         </div>
       </div>
+    )}
+  
 
       <div className="bg-white shadow-md rounded-lg p-4 mt-6">
         <div className="flex justify-between items-center mb-4">

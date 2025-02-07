@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomToast from "../Toast/CustomToast";
+import axios from "axios";
 
 const WithdrawMoneyDetail = () => {
   const navigate = useNavigate();
@@ -12,6 +13,38 @@ const WithdrawMoneyDetail = () => {
   const [toastMessage, setToastMessage] = useState(null);
   const [toastSubMessage, setToastSubMessage] = useState("");
   const [toastType, setToastType] = useState("success");
+  const [userId, setUserId] = useState(null);
+  
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const email = params.get('email');
+    const role = params.get('role');
+    const name = params.get('name');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', email);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const response = await axios.get(`http://localhost:8000/api/user/email/${email}`);
+        console.log("Fetched user ID:", response.data.id);
+        setUserId(response.data.id);
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
 
   const predefinedAmounts = [
     { label: "+100.000 VND", value: 100000 },
@@ -127,6 +160,7 @@ const WithdrawMoneyDetail = () => {
       accountNumber,
       amount: `${parseInt(inputAmount).toLocaleString()} VND`,
       status: "Pending",
+      walletUserId: userId, // Thêm userId vào đây
     };
 
     const existingRequests =

@@ -15,15 +15,20 @@ import StoreDetail from "../components/StoreDetail/StoreDetail";
 import About from "../pages/About/ProfileCard";
 import BankTranfer from "../components/BankTransferHistory/BankTransferHistory";
 import Confirm from "../components/ConfirmRequestWithdraw/ConfirmRequestWithdraw";
-import Test from "../components/Test";
+import success from "../pages/success";
+import cancel from "../pages/cancel";
 export const routes = [
   {
     path: "home",
     page: HomePage,
   },
   {
-    path: "test",
-    page: Test,
+    path: "success",
+    page: success,
+  },
+  {
+    path: "cancel",
+    page: cancel,
   },
   {
     path: "dashboard",

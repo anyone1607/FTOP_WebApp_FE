@@ -221,7 +221,7 @@ const HomePage = () => {
               className="bg-white shadow-lg rounded-lg overflow-hidden"
             >
               <img
-                src={store.storeImage[0]}
+              src={`http://localhost:8000${store.storeImage[0]}`}
                 alt={store.storeName}
                 className="w-full h-40 object-cover"
               />

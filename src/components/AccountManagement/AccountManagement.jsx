@@ -10,6 +10,8 @@ const AccountManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [bankTransfers, setBankTransfers] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const fetchUsers = async () => {
     try {
@@ -22,6 +24,20 @@ const AccountManagement = () => {
     }
   };
 
+  const searchUsers = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/user/search", {
+        params: {
+          query: searchQuery,
+          role: selectedRole,
+        },
+      });
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Error searching users:", error);
+    }
+  };
+
   const fetchBankTransfers = async (userId) => {
     try {
       const response = await axios.get(
@@ -31,16 +47,26 @@ const AccountManagement = () => {
         ? response.data
         : [response.data];
       setBankTransfers(transfers);
+      console.log(response);
     } catch (error) {
       console.error("Error fetching bank transfers:", error);
     }
   };
 
-  const toggleStatus = (id) => {
-    const updatedUsers = users.map((user) =>
-      user.id === id ? { ...user, status: !user.status } : user
-    );
-    setUsers(updatedUsers);
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      const response = await axios.patch(`http://localhost:8000/api/user/${id}/status`, {
+        isActive: !currentStatus,
+      });
+      const updatedUser = response.data;
+
+      const updatedUsers = users.map((user) =>
+        user.id === id ? updatedUser : user
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
   };
 
   const handleUserClick = (user) => {
@@ -55,11 +81,33 @@ const AccountManagement = () => {
     setSelectedUser(null);
   };
 
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.displayName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = selectedRole ? user.role === selectedRole : true;
+
+    return matchesSearch && matchesRole;
+  });
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const itemsPerPage = 9;
+  useEffect(() => {
+    searchUsers();
+  }, [searchQuery, selectedRole]);
+
+  
+
+  useEffect(() => {
+    searchUsers();
+  }, [searchQuery, selectedRole]);
+
+  
+
+  const itemsPerPage = 10;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -102,6 +150,107 @@ const AccountManagement = () => {
 
   return (
     <div className="p-6 text-center">
+      <h1 className="text-2xl font-bold mb-4">Account Management</h1>
+
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="flex justify-between mb-6 space-x-4">
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        <select
+          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+        >
+          <option value="">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="staff">Staff</option>
+          <option value="manager">Manager</option>
+          <option value="owner">Store Owner</option>
+          <option value="user">User</option>
+        </select>
+      </div>
+
+      {/* <table className="min-w-full table-auto border-collapse border border-gray-200 shadow-lg"> */}
+      {/* <table className="min-w-full table-auto border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-200 px-4 py-2">ID</th>
+            <th className="border border-gray-200 px-4 py-2">Name</th>
+            <th className="border border-gray-200 px-4 py-2">Role</th>
+            <th className="border border-gray-200 px-4 py-2">Wallet Balance</th>
+            <th className="border border-gray-200 px-4 py-2">Status</th>
+            <th className="border border-gray-200 px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredUsers.length > 0 ? (
+            currentItems.map((user) => (
+              <tr key={user.id} className="hover:bg-gray-100">
+                <td className="border border-gray-200 px-4 py-2">{user.id}</td>
+                <td className="border border-gray-200 px-4 py-2 flex items-center">
+                  <div className="flex-shrink-0">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="Avatar"
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-500">No Avatar</span>
+                    )}
+                  </div>
+                  <div className="ml-4 overflow-hidden">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {user.email}
+                    </p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {user.displayName}
+                    </p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 px-4 py-2">{user.role}</td>
+                <td className="border border-gray-200 px-4 py-2">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(user.walletBalance)}
+                </td>
+                <td
+                  className={`border border-gray-200 px-4 py-2 ${
+                    user.isActive ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {user.isActive ? "Active" : "Inactive"}
+                </td>
+                <td className="border border-gray-200 px-4 py-2">
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    onClick={() => handleUserClick(user)}
+                  >
+                    View Bank Transfers
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td
+                className="border border-gray-200 px-4 py-2 text-center"
+                colSpan="7"
+              >
+                No users found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table> */}
+
       <table className="min-w-full table-auto bg-white border border-gray-200 shadow-md rounded-lg">
         <thead>
           <tr>
@@ -152,10 +301,9 @@ const AccountManagement = () => {
                 {/* Role */}
                 <td className="border border-gray-200 px-4 py-2">
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      user.role === "admin" ||
-                      user.role === "manager" ||
-                      user.role === "staff"
+                    className={`px-2 py-1 rounded-full text-xs ${user.role === "admin" ||
+                        user.role === "manager" ||
+                        user.role === "staff"
                         ? "bg-purple-100 text-purple-600"
                         : user.role === "owner" || user.role === "student"
                         ? "bg-green-100 text-green-600"
@@ -176,17 +324,14 @@ const AccountManagement = () => {
 
                 {/* Status */}
                 <td
-                  className={`border border-gray-200 px-4 py-2 ${
-                    user.status
-                      ? "text-green-600 font-medium"
-                      : "text-red-600 font-medium"
-                  }`}
+                  className={`border border-gray-200 px-4 py-2 ${user.isActive ? 'text-green-600 font-medium' : 'text-red-600 font-medium'
+                    }`}
                 >
                   <label className="relative inline-flex cursor-pointer items-center">
                     <input
                       type="checkbox"
-                      checked={user.status}
-                      onChange={() => toggleStatus(user.id)}
+                      checked={user.isActive}
+                      onChange={() => toggleStatus(user.id, user.isActive)}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
@@ -204,9 +349,7 @@ const AccountManagement = () => {
                   >
                     <EyeIcon className="h-5 w-5 text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-red-100 rounded">
-                    <TrashIcon className="h-5 w-5 text-red-600" />
-                  </button>
+                
                 </td>
               </tr>
             ))
@@ -232,9 +375,8 @@ const AccountManagement = () => {
               ) : (
                 <button
                   onClick={() => paginate(page)}
-                  className={`px-4 py-2 border text-gray-600 ${
-                    currentPage === page ? "bg-blue-500 text-white" : "bg-white"
-                  }`}
+                  className={`px-4 py-2 border text-gray-600 ${currentPage === page ? "bg-blue-500 text-white" : "bg-white"
+                    }`}
                 >
                   {page}
                 </button>
@@ -261,7 +403,7 @@ const AccountManagement = () => {
             </div>
 
             {/* Content */}
-            {bankTransfers.length > 1 ? (
+            {bankTransfers.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border rounded-lg shadow-sm">
                   <thead>
@@ -288,31 +430,30 @@ const AccountManagement = () => {
                         <td className="py-3 px-4 border-b">
                           {transfer.transferAmount
                             ? `$ ${parseFloat(transfer.transferAmount).toFixed(
-                                2
-                              )}`
+                              2
+                            )}`
                             : ""}
                         </td>
                         <td className="py-3 px-4 border-b">
                           {transfer.transferDate
                             ? new Date(
-                                transfer.transferDate
-                              ).toLocaleDateString()
+                              transfer.transferDate
+                            ).toLocaleDateString()
                             : ""}
                         </td>
                         <td
-                          className={`py-3 px-4 border-b font-medium ${
-                            transfer.status === true
+                          className={`py-3 px-4 border-b font-medium ${transfer.status === true
                               ? "text-green-600"
                               : transfer.status === false
-                              ? "text-red-600"
-                              : ""
-                          }`}
+                                ? "text-red-600"
+                                : ""
+                            }`}
                         >
                           {transfer.status === true
                             ? "Completed"
                             : transfer.status === false
-                            ? "Pending"
-                            : ""}
+                              ? "Pending"
+                              : ""}
                         </td>
                       </tr>
                     ))}

@@ -1,12 +1,10 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { MdError } from "react-icons/md";
 
 const BankTransferHistory = () => {
   const [banktransfer, setBankTransfers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showActions, setShowActions] = useState(false);
   const [rejectedTransactions, setRejectedTransactions] = useState([]);
 
   const fetchBanktransfer = async () => {
@@ -43,7 +41,6 @@ const BankTransferHistory = () => {
 
   const handleConfirm = (transferId) => {
     updateTransactionStatus(transferId, true);
-    setShowActions(false);
   };
 
   const handleReject = (transferId) => {
@@ -53,7 +50,6 @@ const BankTransferHistory = () => {
       localStorage.setItem("rejectedTransactions", JSON.stringify(updated));
       return updated;
     });
-    setShowActions(false);
   };
 
   useEffect(() => {
@@ -63,10 +59,6 @@ const BankTransferHistory = () => {
     }
     fetchBanktransfer();
   }, []);
-
-  const handleClick = () => {
-    setShowActions(!showActions);
-  };
 
   const itemsPerPage = 9;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -110,7 +102,7 @@ const BankTransferHistory = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 bg-white shadow-md rounded-lg">
           <thead className="bg-gray-50">
@@ -130,7 +122,7 @@ const BankTransferHistory = () => {
               ].map((heading, index) => (
                 <th
                   key={index}
-                  className="px-4 py-2 text-center text-sm font-semibold text-gray-600 border-b border-gray-200"
+                  className="px-4 py-4 text-center text-sm font-semibold text-gray-600 border-b border-gray-200"
                 >
                   {heading}
                 </th>
@@ -141,13 +133,13 @@ const BankTransferHistory = () => {
             {banktransfer.length > 0 ? (
               currentItems.map((bank, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.transferId}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.walletUserId}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.user.displayName ? (
                       bank.user.displayName
                     ) : (
@@ -156,7 +148,7 @@ const BankTransferHistory = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.accountNumber ? (
                       bank.accountNumber
                     ) : (
@@ -165,7 +157,7 @@ const BankTransferHistory = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.bankName ? (
                       bank.bankName
                     ) : (
@@ -174,9 +166,9 @@ const BankTransferHistory = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
+                      className={`px-2 py-2 text-xs rounded-full ${
                         bank.transferType
                           ? "bg-green-100 text-green-800"
                           : "bg-blue-100 text-blue-800"
@@ -185,13 +177,13 @@ const BankTransferHistory = () => {
                       {bank.transferType ? "topup" : "withdraw"}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(bank.transferAmount)}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {bank.transferDescription ? (
                       bank.transferDescription
                     ) : (
@@ -200,16 +192,16 @@ const BankTransferHistory = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {new Date(bank.transferDate).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
                     })}
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
+                      className={`px-2 py-2 text-xs rounded-full ${
                         bank.status
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
@@ -218,34 +210,24 @@ const BankTransferHistory = () => {
                       {bank.status ? "success" : "failed"}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     {!bank.status &&
                       !rejectedTransactions.includes(bank.transferId) && (
-                        <div className="relative inline-block text-left">
+                        <div className="flex items-center space-x-2">
                           <button
-                            onClick={handleClick}
-                            className="p-2 rounded hover:bg-gray-100 focus:outline-none"
+                            onClick={() => handleConfirm(bank.transferId)}
+                            className="px-2 py-2 text-sm text-white bg-green-500 hover:bg-green-600 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                            aria-label="Confirm Transfer"
                           >
-                            <PencilSquareIcon className="h-5 w-5 text-gray-600" />
+                            Confirm
                           </button>
-                          {showActions && (
-                            <div className="absolute mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                              <div className="flex flex-col">
-                                <span
-                                  onClick={() => handleConfirm(bank.transferId)}
-                                  className="cursor-pointer px-4 py-2 text-sm text-white bg-green-500 hover:bg-green-600"
-                                >
-                                  Confirm
-                                </span>
-                                <span
-                                  onClick={() => handleReject(bank.transferId)}
-                                  className="cursor-pointer px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-600"
-                                >
-                                  Reject
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                          <button
+                            onClick={() => handleReject(bank.transferId)}
+                            className="px-2 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded focus:outline-none focus:ring-2 focus:ring-red-400"
+                            aria-label="Reject Transfer"
+                          >
+                            Reject
+                          </button>
                         </div>
                       )}
                   </td>
@@ -254,7 +236,7 @@ const BankTransferHistory = () => {
             ) : (
               <tr>
                 <td
-                  className="px-4 py-2 text-center text-sm text-gray-700"
+                  className="px-4 py-4 text-center text-sm text-gray-700"
                   colSpan="11"
                 >
                   No banktransfers found.
